@@ -4,7 +4,7 @@ from vector_2d import Vector
 
 import pygame
 
-from characters import Character
+from characters import Farmer
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -19,7 +19,7 @@ done = False
 fill = (0, 0, 0)
 fps = 20
 
-farmer = Character(Vector(400, 400))
+farmer = Farmer(Vector(400, 400))
 
 while not done:
     screen.fill(fill)
