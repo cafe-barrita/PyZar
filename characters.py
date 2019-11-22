@@ -14,15 +14,31 @@ class Character:
     def __init__(self, pos: Vector):
         if self.is_instantiable():
             self.pos = pos
-            self.destination = pos
+            self._destination = pos
+            self._is_pressed = False
 
     def move(self, t):
-        dif = self.destination - self.pos
-        if abs(dif) > 0.1:
-            self.pos += dif.unit() * Character.vel_mod
+        dif = self._destination - self.pos
+        if abs(dif) > 1:
+            self.pos += dif.unit() * self.vel_mod
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self.pos.int(), 3, 3)
+        pygame.draw.circle(surface, self.color, self.pos.int(), 5, 0)
+        if self._is_pressed:
+            pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), 5, 1)
+
+    def actualize(self, surface: pygame.Surface, t):
+        self.move(t)
+        self.draw(surface)
+
+    def set_pressed(self, value: bool):
+        self._is_pressed = value
+
+    def __hash__(self):
+        return hash(repr(self.pos))
+
+    def set_destination(self, destination: Vector):
+        self._destination = destination
 
 
 class Farmer(Character):

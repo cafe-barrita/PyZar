@@ -1,10 +1,13 @@
 import os
 import sys
+
 from vector_2d import Vector
+from typing import Optional
 
 import pygame
 
-from characters import Farmer
+import interactions
+from characters import Farmer, Character
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -16,16 +19,21 @@ screen = pygame.display.set_mode(resolution)
 clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
-fill = (0, 0, 0)
+noir = (0, 0, 0)
 fps = 20
 
 farmer = Farmer(Vector(400, 400))
+pressed_one: Optional[Character] = None
 
 while not done:
-    screen.fill(fill)
-    farmer.draw(screen)
+    screen.fill(noir)
+    farmer.actualize(screen, t)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                pressed_one = interactions.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
+            if event.button == 3 and pressed_one:
+                pressed_one.set_destination(Vector(*pygame.mouse.get_pos()))
             if event.button == 4:
                 ...
             elif event.button == 5:
