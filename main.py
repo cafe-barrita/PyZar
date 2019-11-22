@@ -8,6 +8,7 @@ import pygame
 
 import interactions
 from characters import Farmer, Character
+from items import Tree
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -24,9 +25,11 @@ fps = 20
 
 farmer = Farmer(Vector(400, 400))
 pressed_one: Optional[Character] = None
+tree = Tree(Vector(200, 100))
 
 while not done:
     screen.fill(noir)
+    tree.draw(screen)
     farmer.actualize(screen, t)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
