@@ -5,8 +5,8 @@ from vector_2d import Vector
 from typing import Optional
 
 import pygame
-
-import interactions
+import cursors
+from interactions import Interaction
 from characters import Farmer, Character
 from items import Tree
 
@@ -32,9 +32,15 @@ while not done:
     tree.draw(screen)
     farmer.actualize(screen, t)
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEMOTION:
+            hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, })
+            if hovered:
+                pygame.mouse.set_cursor(*hovered.get_cursor())
+            else:
+                pygame.mouse.set_cursor(*pygame.cursors.arrow)
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pressed_one = interactions.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
+                pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
             if event.button == 3 and pressed_one:
                 pressed_one.set_destination(Vector(*pygame.mouse.get_pos()))
             if event.button == 4:
