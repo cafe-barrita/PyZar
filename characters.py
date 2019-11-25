@@ -42,9 +42,6 @@ class Character(Item):
     def set_pressed(self, value: bool):
         self._is_pressed = value
 
-    def __hash__(self):
-        return hash(repr(self.pos))
-
     def set_destination(self, destination: Vector):
         self._destination = destination
 
@@ -66,7 +63,7 @@ class Farmer(Character):
         self.__work_cycle_index = -1
         self.job = None
         self.load = 0
-        self.work_speed = 0.001
+        self.work_speed = 0.01
         self.home = home
 
     @property
@@ -91,6 +88,9 @@ class Farmer(Character):
         self.load += self.work_speed * t
         print(f'Load of {str(self.job)}:', self.load)
         if self.load >= 10:
+            self.job.has_been_worked()
+            if not self.job.is_alive():
+                self.job = None
             self._destination = self.home.pos
             self.work_cycle_index -= 1
 

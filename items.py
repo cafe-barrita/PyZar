@@ -1,6 +1,9 @@
+import abc
+import random
+from abc import ABC
+
 import pygame
 from vector_2d import Vector
-import abc
 
 
 class Item:
@@ -21,8 +24,21 @@ class Item:
     def __str__(self):
         return self.__class__.__name__
 
+    def __hash__(self):
+        return hash(repr(self.pos))
 
-class Mineral(Item):
+
+class Resource(Item, ABC):
+    load = None
+
+    def has_been_worked(self):
+        self.load -= 10
+
+    def is_alive(self):
+        return self.load > 0
+
+
+class Mineral(Resource):
     color = 255, 150, 100
     radius = 20
 
@@ -39,12 +55,32 @@ class Mineral(Item):
         pygame.draw.polygon(surface, self.color, self.points)
 
 
-class Tree(Item):
+class Tree(Resource):
     color = 100, 200, 10
     radius = 5
 
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
+        self.load = 30
+
     def is_instantiable(self):
         return True
+
+
+class Forest:
+    def __init__(self, res):
+        self.tree_set = set()
+        for _ in range(200):
+            x = random.randrange(res[0])
+            y = random.randrange(res[1])
+            self.tree_set.add(Tree(Vector(x, y)))
+
+    def draw(self, screen: pygame.Surface):
+        for tree in self.tree_set:
+            tree.draw(screen)
+
+    def actualize(self):
+        self.tree_set = {tree for tree in self.tree_set if tree.load > 0}
 
 
 class Building(Item):

@@ -7,7 +7,12 @@ from typing import Optional
 import pygame
 from interactions import Interaction
 from characters import Farmer, Character
-from items import Tree, Mineral, Castle
+from items import Tree, Mineral, Castle, Forest
+
+
+def do_each_second():
+    forest.actualize()
+
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -25,28 +30,31 @@ fps = 20
 castle = Castle(Vector(400, 300))
 farmer = Farmer(Vector(400, 400), home=castle)
 pressed_one: Optional[Character] = None
-tree = Tree(Vector(200, 100))
+# tree = Tree(Vector(200, 100))
+forest = Forest(resolution)
 mineral = Mineral(Vector(300, 50))
+
+pygame.time.set_timer(31, 1000)
 
 while not done:
     screen.fill(noir)
     castle.draw(screen)
-    tree.draw(screen)
+    forest.draw(screen)
     mineral.draw(screen)
     farmer.actualize(screen, t)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
-                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, mineral})
+                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest.tree_set.union({mineral}))
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:
                     pygame.mouse.set_cursor(*pygame.cursors.arrow)
             else:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, mineral})
+                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest.tree_set.union({mineral}))
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
@@ -56,7 +64,10 @@ while not done:
                 ...
             elif event.button == 5:
                 ...
-        if event.type == pygame.QUIT:
+        elif event.type == 31:
+            do_each_second()
+
+        elif event.type == pygame.QUIT:
             done = True
 
     teclas = pygame.key.get_pressed()
