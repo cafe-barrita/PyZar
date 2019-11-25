@@ -51,10 +51,14 @@ class Character:
 class Farmer(Character):
     vel_mod = 1
     color = 0, 0, 255
+    cursors = {'Tree': cursors.compiled_axe,
+               'Building': cursors.compiled_shovel,
+               'Mineral': cursors.compiled_pick,
+               }
 
-    def __init__(self, pos: Vector):
-        super().__init__(pos)
-        self.cursors = {'Tree': ((24, 16), (0, 0), *pygame.cursors.compile(cursors.shovel, 'X', '.'))}
+    # def __init__(self, pos: Vector):
+    #     super().__init__(pos)
+    #     self.cursors =
 
     def is_instantiable(self):
         return True
