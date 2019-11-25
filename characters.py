@@ -8,7 +8,7 @@ import cursors
 from items import Item, Mineral, Tree, Building
 
 
-class Character(Item):
+class Character(Item, abc.ABC):
     vel_mod = None
     cursors = None
     radius = 5
@@ -17,10 +17,6 @@ class Character(Item):
         super().__init__(pos)
         self._destination = pos
         self._is_pressed = False
-
-    @abc.abstractmethod
-    def is_instantiable(self):
-        super().is_instantiable()
 
     def move(self, t) -> bool:
         dif = self._destination - self.pos

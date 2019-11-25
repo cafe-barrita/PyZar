@@ -83,10 +83,8 @@ class Forest:
         self.tree_set = {tree for tree in self.tree_set if tree.load > 0}
 
 
-class Building(Item):
-    @abc.abstractmethod
-    def is_instantiable(self):
-        super().is_instantiable()
+class Building(Item, ABC):
+    ...
 
 
 class Castle(Building):
