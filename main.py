@@ -7,7 +7,7 @@ from typing import Optional
 import pygame
 from interactions import Interaction
 from characters import Farmer, Character
-from items import Tree
+from items import Tree, Mineral
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -25,15 +25,17 @@ fps = 20
 farmer = Farmer(Vector(400, 400))
 pressed_one: Optional[Character] = None
 tree = Tree(Vector(200, 100))
+mineral = Mineral(Vector(300, 50))
 
 while not done:
     screen.fill(noir)
     tree.draw(screen)
+    mineral.draw(screen)
     farmer.actualize(screen, t)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
-                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, })
+                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, mineral})
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:

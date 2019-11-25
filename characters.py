@@ -9,13 +9,13 @@ from items import Item
 class Character:
     vel_mod = None
     color = None
+    radius = 5
 
     def __init__(self, pos: Vector):
         if self.is_instantiable():
             self.pos = pos
             self._destination = pos
             self._is_pressed = False
-            self.cursors = {}
 
     @abc.abstractmethod
     def is_instantiable(self):

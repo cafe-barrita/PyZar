@@ -5,7 +5,6 @@ from vector_2d import Vector
 from characters import Character
 from items import Item
 
-radius = 5
 
 
 class Interaction:
@@ -18,7 +17,7 @@ class Interaction:
         # TODO order the character list positionaly to improve check
         for character in characters:
             # print(abs(mouse - character.pos))
-            if abs(mouse - character.pos) < radius:
+            if abs(mouse - character.pos) < character.radius:
                 character.set_pressed(True)
                 Interaction.last_pressed = character
                 return Interaction.last_pressed
@@ -26,5 +25,5 @@ class Interaction:
     @staticmethod
     def get_hovered(mouse: Vector, items: Set[Item]) -> Item:
         for item in items:
-            if abs(mouse - item.pos) < radius:
+            if abs(mouse - item.pos) < item.radius:
                 return item
