@@ -28,10 +28,10 @@ noir = 0, 0, 0
 fps = 20
 
 castle = Castle(Vector(400, 300))
-farmer = Farmer(Vector(400, 400), home=castle)
+forest = Forest(resolution)
+farmer = Farmer(Vector(400, 400), home=castle, forest=forest)
 pressed_one: Optional[Character] = None
 # tree = Tree(Vector(200, 100))
-forest = Forest(resolution)
 mineral = Mineral(Vector(300, 50))
 
 pygame.time.set_timer(31, 1000)

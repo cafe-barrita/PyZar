@@ -5,7 +5,7 @@ import pygame
 from vector_2d import Vector
 
 import cursors
-from items import Item, Mineral, Tree, Building
+from items import Item, Mineral, Tree, Building, Forest
 
 
 class Character(Item, abc.ABC):
@@ -27,9 +27,9 @@ class Character(Item, abc.ABC):
             return True
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self.pos.int(), 5, 0)
+        pygame.draw.circle(surface, self.color, self.pos.int(), self.radius, 0)
         if self._is_pressed:
-            pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), 5, 1)
+            pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), self.radius, 1)
 
     def actualize(self, surface: pygame.Surface, t):
         self.move(t)
@@ -52,8 +52,12 @@ class Farmer(Character):
                'Building': cursors.compiled_shovel,
                'Mineral': cursors.compiled_pick,
                }
+    radius = 10
+    UNEMPLOYED = 'unemployed'
+    CHOPPER = 'chopper'
+    MINER = 'miner'
 
-    def __init__(self, pos: Vector, home: Building):
+    def __init__(self, pos: Vector, home: Building, forest: Forest):
         super().__init__(pos)
         self.work_cycle = [self.go_back, self.work, self.go]
         self.__work_cycle_index = -1
@@ -61,6 +65,8 @@ class Farmer(Character):
         self.load = 0
         self.work_speed = 0.01
         self.home = home
+        self.status = Farmer.UNEMPLOYED
+        self.forest = forest
 
     @property
     def work_cycle_index(self):
@@ -96,14 +102,22 @@ class Farmer(Character):
             self.work_cycle_index -= 1
 
     def set_job(self, item: Union[Mineral, Tree]):
-        if isinstance(item, (Mineral, Tree)):
-            self.job = item
-            self._destination = item.pos
+        self.job = item
+        self._destination = item.pos
+        if isinstance(item, Tree):
+            self.status = Farmer.CHOPPER
+        if isinstance(item, Mineral):
+            self.status = Farmer.MINER
 
     def actualize(self, surface: pygame.Surface, t):
         if self.job:
             self.work_cycle[self.work_cycle_index](t)
             self.draw(surface)
+        elif self.status == Farmer.CHOPPER:
+            for tree in self.forest.tree_set:
+                if abs(tree.pos - self.pos) < 50:
+                    self.job = tree
+                    break
         else:
             super().actualize(surface, t)
 
