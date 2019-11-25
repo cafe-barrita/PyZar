@@ -8,21 +8,19 @@ import cursors
 from items import Item, Mineral, Tree, Building
 
 
-class Character:
+class Character(Item):
     vel_mod = None
-    color = None
     cursors = None
     radius = 5
 
     def __init__(self, pos: Vector):
-        if self.is_instantiable():
-            self.pos = pos
-            self._destination = pos
-            self._is_pressed = False
+        super().__init__(pos)
+        self._destination = pos
+        self._is_pressed = False
 
     @abc.abstractmethod
     def is_instantiable(self):
-        raise TypeError(f'{self.__class__.__name__} is an abstract class and is not instantiable')
+        super().is_instantiable()
 
     def move(self, t) -> bool:
         dif = self._destination - self.pos
