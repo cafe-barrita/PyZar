@@ -6,7 +6,6 @@ from characters import Character
 from items import Item
 
 
-
 class Interaction:
     last_pressed: Optional[Character] = None
 

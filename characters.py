@@ -1,14 +1,17 @@
+import abc
+from typing import Union
+
 import pygame
 from vector_2d import Vector
-import abc
 
 import cursors
-from items import Item
+from items import Item, Mineral, Tree
 
 
 class Character:
     vel_mod = None
     color = None
+    cursors = None
     radius = 5
 
     def __init__(self, pos: Vector):
@@ -21,10 +24,13 @@ class Character:
     def is_instantiable(self):
         raise TypeError(f'{self.__class__.__name__} is an abstract class and is not instantiable')
 
-    def move(self, t):
+    def move(self, t) -> bool:
         dif = self._destination - self.pos
         if abs(dif) > 1:
             self.pos += dif.unit() * self.vel_mod
+            return False
+        else:
+            return True
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self.pos.int(), 5, 0)
@@ -56,9 +62,56 @@ class Farmer(Character):
                'Mineral': cursors.compiled_pick,
                }
 
-    # def __init__(self, pos: Vector):
-    #     super().__init__(pos)
-    #     self.cursors =
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
+        self.work_cycle = [self.go_back, self.work, self.go]
+        self.__work_cycle_index = -1
+        self.job = None
+        self.load = 0
+        self.work_speed = 0.001
+        self.home_pos = Vector()
+
+    @property
+    def work_cycle_index(self):
+        return self.__work_cycle_index
+
+    @work_cycle_index.setter
+    def work_cycle_index(self, value):
+        if value < -len(self.work_cycle):
+            self.__work_cycle_index = -1
+        else:
+            self.__work_cycle_index = value
+
+    def go_back(self, t: int):
+        arrived = self.move(t)
+        if arrived:
+            self.load = 0
+            self._destination = self.job.pos
+            self.work_cycle_index -= 1
+
+    def work(self, t: int):
+        self.load += self.work_speed * t
+        print('Load:', self.load)
+        if self.load >= 10:
+            self._destination = self.home_pos
+            self.work_cycle_index -= 1
+
+    def go(self, t: int):
+        arrived = self.move(t)
+        if arrived:
+            self.work_cycle_index -= 1
+
+    def set_job(self, item: Union[Mineral, Tree]):
+        if isinstance(item, (Mineral, Tree)):
+            self.job = item
+            self._destination = item.pos
+
+    def actualize(self, surface: pygame.Surface, t):
+        if self.job:
+            self.work_cycle[self.work_cycle_index](t)
+            self.draw(surface)
+        else:
+            super().actualize(surface, t)
 
     def is_instantiable(self):
         return True

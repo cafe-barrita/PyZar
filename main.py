@@ -44,6 +44,9 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
+                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), {tree, mineral})
+                if pressed_item and pressed_one:
+                    pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
             if event.button == 3 and pressed_one:
                 pressed_one.set_destination(Vector(*pygame.mouse.get_pos()))
