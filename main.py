@@ -7,7 +7,7 @@ from typing import Optional
 import pygame
 from interactions import Interaction
 from characters import Farmer, Character
-from items import Tree, Mineral
+from items import Tree, Mineral, Castle
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -22,13 +22,15 @@ done = False
 noir = 0, 0, 0
 fps = 20
 
-farmer = Farmer(Vector(400, 400))
+castle = Castle(Vector(400, 300))
+farmer = Farmer(Vector(400, 400), home=castle)
 pressed_one: Optional[Character] = None
 tree = Tree(Vector(200, 100))
 mineral = Mineral(Vector(300, 50))
 
 while not done:
     screen.fill(noir)
+    castle.draw(screen)
     tree.draw(screen)
     mineral.draw(screen)
     farmer.actualize(screen, t)

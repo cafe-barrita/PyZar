@@ -5,7 +5,7 @@ import pygame
 from vector_2d import Vector
 
 import cursors
-from items import Item, Mineral, Tree
+from items import Item, Mineral, Tree, Building
 
 
 class Character:
@@ -62,14 +62,14 @@ class Farmer(Character):
                'Mineral': cursors.compiled_pick,
                }
 
-    def __init__(self, pos: Vector):
+    def __init__(self, pos: Vector, home: Building):
         super().__init__(pos)
         self.work_cycle = [self.go_back, self.work, self.go]
         self.__work_cycle_index = -1
         self.job = None
         self.load = 0
         self.work_speed = 0.001
-        self.home_pos = Vector()
+        self.home = home
 
     @property
     def work_cycle_index(self):
@@ -91,9 +91,9 @@ class Farmer(Character):
 
     def work(self, t: int):
         self.load += self.work_speed * t
-        print('Load:', self.load)
+        print(f'Load of {str(self.job)}:', self.load)
         if self.load >= 10:
-            self._destination = self.home_pos
+            self._destination = self.home.pos
             self.work_cycle_index -= 1
 
     def go(self, t: int):

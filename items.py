@@ -4,7 +4,6 @@ import abc
 
 
 class Item:
-    vel_mod = None
     color = None
     radius = None
 
@@ -18,6 +17,9 @@ class Item:
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self.pos.int(), 5, 0)
+
+    def __str__(self):
+        return self.__class__.__name__
 
 
 class Mineral(Item):
@@ -43,3 +45,24 @@ class Tree(Item):
 
     def is_instantiable(self):
         return True
+
+
+class Building(Item):
+    @abc.abstractmethod
+    def is_instantiable(self):
+        super().is_instantiable()
+
+
+class Castle(Building):
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
+        self.color = 0, 100, 200
+        self.points = [point.int() for point in (
+            pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
+            pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
+
+    def is_instantiable(self):
+        return True
+
+    def draw(self, surface: pygame.Surface):
+        pygame.draw.polygon(surface, self.color, self.points)
