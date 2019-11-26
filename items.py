@@ -80,10 +80,6 @@ class Forest:
         for tree in self.tree_set:
             tree.draw(screen)
 
-    def actualize(self):
-        # fixme que sea el campsino quien lo saque de la lista pues sabe quien es
-        self.tree_set = {tree for tree in self.tree_set if tree.load > 0}
-
 
 class Building(Item, ABC):
     ...

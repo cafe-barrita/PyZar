@@ -92,6 +92,8 @@ class Farmer(Character):
         if self.load >= 10:
             self.job.has_been_worked()
             if not self.job.is_alive():
+                if isinstance(self.job, Tree):
+                    self.forest.tree_set.discard(self.job)
                 self.job = None
             self._destination = self.home.pos
             self.work_cycle_index -= 1

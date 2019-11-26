@@ -1,17 +1,19 @@
 import os
 import sys
-
-from vector_2d import Vector
 from typing import Optional
 
 import pygame
-from interactions import Interaction
+from vector_2d import Vector
+
 from characters import Farmer, Character
-from items import Tree, Mineral, Castle, Forest
+from interactions import Interaction
+from items import Mineral, Castle, Forest
+
+EVERY_SECOND_EVENT = 31
 
 
 def do_each_second():
-    forest.actualize()
+    ...
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -34,7 +36,7 @@ pressed_one: Optional[Character] = None
 # tree = Tree(Vector(200, 100))
 mineral = Mineral(Vector(300, 50))
 
-pygame.time.set_timer(31, 1000)
+pygame.time.set_timer(EVERY_SECOND_EVENT, 1000)
 
 while not done:
     screen.fill(noir)
@@ -42,6 +44,7 @@ while not done:
     forest.draw(screen)
     mineral.draw(screen)
     farmer.actualize(screen, t)
+
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
@@ -54,28 +57,28 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest.tree_set.union({mineral}))
+                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()),
+                                                       forest.tree_set.union({mineral}))
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
-            if event.button == 3 and pressed_one:
+            elif event.button == 3 and pressed_one:
                 pressed_one.set_destination(Vector(*pygame.mouse.get_pos()))
-            if event.button == 4:
-                ...
-            elif event.button == 5:
-                ...
-        elif event.type == 31:
+            # elif event.button == 4:
+            #     ...
+            # elif event.button == 5:
+            #     ...
+        elif event.type == EVERY_SECOND_EVENT:
             do_each_second()
 
         elif event.type == pygame.QUIT:
             done = True
 
     teclas = pygame.key.get_pressed()
-
-    if teclas[pygame.K_KP_PLUS]:
-        ...
-    if teclas[pygame.K_KP_MINUS]:
-        ...
+    # if teclas[pygame.K_KP_PLUS]:
+    #     ...
+    # if teclas[pygame.K_KP_MINUS]:
+    #     ...
 
     # para sair
     if teclas[pygame.K_ESCAPE]:
