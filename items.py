@@ -44,6 +44,7 @@ class Mineral(Resource):
 
     def __init__(self, pos: Vector):
         super().__init__(pos)
+        self.load = 8000
         self.points = [point.int() for point in (
             pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
             pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
@@ -80,6 +81,7 @@ class Forest:
             tree.draw(screen)
 
     def actualize(self):
+        # fixme que sea el campsino quien lo saque de la lista pues sabe quien es
         self.tree_set = {tree for tree in self.tree_set if tree.load > 0}
 
 

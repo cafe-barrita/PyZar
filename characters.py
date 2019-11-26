@@ -115,6 +115,7 @@ class Farmer(Character):
             self.draw(surface)
         elif self.status == Farmer.CHOPPER:
             for tree in self.forest.tree_set:
+                # FIXME que sea el más cercano
                 if abs(tree.pos - self.pos) < 50:
                     self.job = tree
                     break
