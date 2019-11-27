@@ -28,6 +28,16 @@ class Item:
         return hash(repr(self.pos))
 
 
+class Obstacle:
+    radius = None
+
+    def __init__(self, pos: Vector):
+        points = (pos + Vector(self.radius, self.radius), pos + Vector(-self.radius, self.radius),
+                  pos + Vector(-self.radius, -self.radius), pos + Vector(self.radius, -self.radius),)
+        self.points = tuple(point.int() for point in points)
+        self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
+
+
 class Resource(Item, ABC):
     load = None
 
@@ -38,16 +48,17 @@ class Resource(Item, ABC):
         return self.load > 0
 
 
-class Mineral(Resource):
+class Mineral(Resource, Obstacle):
     color = 255, 150, 100
     radius = 20
 
     def __init__(self, pos: Vector):
-        super().__init__(pos)
+        Resource.__init__(self, pos)
+        Obstacle.__init__(self, pos)
         self.load = 8000
-        self.points = [point.int() for point in (
-            pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
-            pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
+        # self.points = [point.int() for point in (
+        #     pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
+        #     pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
 
     def is_instantiable(self):
         return True
@@ -81,18 +92,18 @@ class Forest:
             tree.draw(screen)
 
 
-class Building(Item, ABC):
-    ...
+class Building(Item, Obstacle, ABC):
+    def __init__(self, pos: Vector):
+        Item.__init__(self, pos)
+        Obstacle.__init__(self, pos)
 
 
 class Castle(Building):
     radius = 30
+
     def __init__(self, pos: Vector):
         super().__init__(pos)
         self.color = 0, 100, 200
-        self.points = [point.int() for point in (
-            pos + Vector(Castle.radius, Castle.radius), pos + Vector(-Castle.radius, Castle.radius),
-            pos + Vector(-Castle.radius, -Castle.radius), pos + Vector(Castle.radius, -Castle.radius),)]
 
     def is_instantiable(self):
         return True
