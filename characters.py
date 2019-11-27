@@ -18,6 +18,11 @@ class Character(Item, abc.ABC):
         super().__init__(pos)
         self.__destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
+        self.__direction_vector = Vector()
+
+    @property
+    def director_vector(self):
+        return self.__direction_vector
 
     @property
     def destination(self):
@@ -33,13 +38,15 @@ class Character(Item, abc.ABC):
 
     def move(self, t: int) -> bool:
         if self.__destination:
-            dif = self.__destination[-1] - self.pos
-            if abs(dif) >= self.radius:
-                self.pos += dif.unit() * self.vel_mod * t
+            self.__direction_vector = self.__destination[-1] - self.pos
+            if abs(self.__direction_vector) >= self.radius:
+                self.pos += self.__direction_vector.unit() * self.vel_mod * t
                 return False
             else:
                 self.__destination.pop()
                 return True
+        else:
+            self.__direction_vector = Vector()
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self.pos.int(), self.radius, 0)
@@ -95,8 +102,8 @@ class Farmer(Character):
             self.__work_cycle_index = value
 
     def get_back_from_work(self, t: int):
-        arrived = self.move(t)
-        if arrived:
+        self.move(t)
+        if abs(self.pos - self.home.pos) <= self.radius + self.home.radius + 5:
             self.load = 0
             self.destination = self.job.pos
             self.work_cycle_index -= 1
@@ -115,7 +122,7 @@ class Farmer(Character):
 
     def go_to_work(self, t: int):
         self.move(t)
-        if abs(self.pos - self.job.pos) <= self.radius:
+        if abs(self.pos - self.job.pos) <= self.radius + self.job.radius + 2:
             self.work_cycle_index -= 1
 
     def set_job(self, item: Union[Mineral, Tree]):
