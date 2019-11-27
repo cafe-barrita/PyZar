@@ -86,12 +86,13 @@ class Building(Item, ABC):
 
 
 class Castle(Building):
+    radius = 30
     def __init__(self, pos: Vector):
         super().__init__(pos)
         self.color = 0, 100, 200
         self.points = [point.int() for point in (
-            pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
-            pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
+            pos + Vector(Castle.radius, Castle.radius), pos + Vector(-Castle.radius, Castle.radius),
+            pos + Vector(-Castle.radius, -Castle.radius), pos + Vector(Castle.radius, -Castle.radius),)]
 
     def is_instantiable(self):
         return True

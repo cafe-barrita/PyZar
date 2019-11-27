@@ -33,10 +33,9 @@ castle = Castle(Vector(400, 300))
 forest = Forest(resolution)
 farmer = Farmer(Vector(400, 400), home=castle, forest=forest)
 pressed_one: Optional[Character] = None
-# tree = Tree(Vector(200, 100))
 mineral = Mineral(Vector(300, 50))
 
-pygame.time.set_timer(EVERY_SECOND_EVENT, 1000)
+pygame.time.set_timer(EVERY_SECOND_EVENT, 100)
 
 while not done:
     screen.fill(noir)
@@ -63,7 +62,7 @@ while not done:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), {farmer, })
             elif event.button == 3 and pressed_one:
-                pressed_one.set_destination(Vector(*pygame.mouse.get_pos()))
+                pressed_one.append_left_destination(Vector(*pygame.mouse.get_pos()))
             # elif event.button == 4:
             #     ...
             # elif event.button == 5:
@@ -85,7 +84,6 @@ while not done:
         done = True
 
     t = clock.get_time()
-    fill = 0, 0, 0
 
     pygame.display.flip()
 

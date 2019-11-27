@@ -1,5 +1,6 @@
 import abc
-from typing import Union
+from collections import deque
+from typing import Union, List, Deque
 
 import pygame
 from vector_2d import Vector
@@ -15,38 +16,52 @@ class Character(Item, abc.ABC):
 
     def __init__(self, pos: Vector):
         super().__init__(pos)
-        self._destination = pos
+        self.__destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
 
-    def move(self, t) -> bool:
-        dif = self._destination - self.pos
-        if abs(dif) > 1:
-            self.pos += dif.unit() * self.vel_mod
-            return False
-        else:
-            return True
+    @property
+    def destination(self):
+        if self.destination:
+            return self.destination[-1]
+
+    @destination.setter
+    def destination(self, value):
+        self.__destination.append(value)
+
+    def append_left_destination(self, value):
+        self.__destination.appendleft(value)
+
+    def move(self, t: int) -> bool:
+        if self.__destination:
+            dif = self.__destination[-1] - self.pos
+            if abs(dif) >= self.radius:
+                self.pos += dif.unit() * self.vel_mod * t
+                return False
+            else:
+                self.__destination.pop()
+                return True
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self.pos.int(), self.radius, 0)
         if self._is_pressed:
             pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), self.radius, 1)
 
-    def actualize(self, surface: pygame.Surface, t):
+        for dest in self.__destination:
+            pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
+
+    def actualize(self, surface: pygame.Surface, t: int):
         self.move(t)
         self.draw(surface)
 
     def set_pressed(self, value: bool):
         self._is_pressed = value
 
-    def set_destination(self, destination: Vector):
-        self._destination = destination
-
     def get_cursor(self, item: Item):
         return self.cursors[item.__class__.__name__]
 
 
 class Farmer(Character):
-    vel_mod = 1
+    vel_mod = 0.05
     color = 0, 0, 255
     cursors = {'Tree': cursors.compiled_axe,
                'Building': cursors.compiled_shovel,
@@ -59,7 +74,7 @@ class Farmer(Character):
 
     def __init__(self, pos: Vector, home: Building, forest: Forest):
         super().__init__(pos)
-        self.work_cycle = [self.go_back, self.work, self.go]
+        self.work_cycle = [self.get_back_from_work, self.work, self.go_to_work]
         self.__work_cycle_index = -1
         self.job = None
         self.load = 0
@@ -79,33 +94,33 @@ class Farmer(Character):
         else:
             self.__work_cycle_index = value
 
-    def go_back(self, t: int):
+    def get_back_from_work(self, t: int):
         arrived = self.move(t)
         if arrived:
             self.load = 0
-            self._destination = self.job.pos
+            self.destination = self.job.pos
             self.work_cycle_index -= 1
 
     def work(self, t: int):
         self.load += self.work_speed * t
-        print(f'Load of {str(self.job)}:', self.load)
+        # print(f'Load of {str(self.job)}:', self.load)
         if self.load >= 10:
             self.job.has_been_worked()
             if not self.job.is_alive():
                 if isinstance(self.job, Tree):
                     self.forest.tree_set.discard(self.job)
                 self.job = None
-            self._destination = self.home.pos
+            self.destination = self.home.pos
             self.work_cycle_index -= 1
 
-    def go(self, t: int):
-        arrived = self.move(t)
-        if arrived:
+    def go_to_work(self, t: int):
+        self.move(t)
+        if abs(self.pos - self.job.pos) <= self.radius:
             self.work_cycle_index -= 1
 
     def set_job(self, item: Union[Mineral, Tree]):
         self.job = item
-        self._destination = item.pos
+        self.destination = item.pos
         if isinstance(item, Tree):
             self.status = Farmer.CHOPPER
         if isinstance(item, Mineral):
