@@ -153,10 +153,11 @@ class Farmer(Character):
         elif self.status == Farmer.CHOPPER:
             for tree in self.forest.tree_set:
                 # FIXME que sea el más cercano
-                if abs(tree.pos - self.pos) < 50:
+                if abs(tree.pos - self.pos) < 100:
                     self.job = tree
                     return
             self.status = Farmer.UNEMPLOYED
+            self.__work_cycle_index = -1
 
         else:
             super().actualize(surface, t)
