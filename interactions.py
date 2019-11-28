@@ -11,7 +11,7 @@ class Interaction:
     last_pressed: Optional[Character] = None
 
     @staticmethod
-    def mouse_characters(mouse: Vector, characters: Set[Character]) -> Character:
+    def mouse_characters(mouse: Vector, characters: List[Character]) -> Character:
         if Interaction.last_pressed:
             Interaction.last_pressed.set_pressed(False)
         # TODO order the character list positionaly to improve check

@@ -14,7 +14,7 @@ EVERY_SECOND_EVENT = 31
 
 
 def do_each_second():
-    Interaction.check_obstacles(farmers, {mineral, mineral2, castle}.union(farmers))
+    Interaction.check_obstacles(farmers, [mineral, mineral2, castle] + farmers)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -32,9 +32,9 @@ fps = 20
 
 castle = Castle(Vector(400, 300))
 forest = Forest(resolution)
-farmers = {Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
+farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
                   home=castle,
-                  forest=forest) for _ in range(3)}
+                  forest=forest) for _ in range(3)]
 pressed_one: Optional[Character] = None
 mineral = Mineral(Vector(300, 100))
 mineral2 = Mineral(Vector(500, 100))
@@ -54,7 +54,7 @@ while not done:
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
                 hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()),
-                                                  forest.tree_set.union({mineral, mineral2}))
+                                                  forest.tree_set.union([mineral, mineral2]))
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:
@@ -64,7 +64,7 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()),
-                                                       forest.tree_set.union({mineral, mineral2}))
+                                                       forest.tree_set.union([mineral, mineral2]))
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), farmers)

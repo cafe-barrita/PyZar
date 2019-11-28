@@ -6,17 +6,18 @@ import pygame
 from vector_2d import Vector
 
 import cursors
-from items import Item, Mineral, Tree, Building, Forest
+from items import Item, Mineral, Tree, Building, Forest, Obstacle
 
 
-class Character(Item, abc.ABC):
+class Character(Item, Obstacle, abc.ABC):
     vel_mod = None
     cursors = None
     radius = 5
     sight_radius = 25
 
     def __init__(self, pos: Vector):
-        super().__init__(pos)
+        Item.__init__(self, pos)
+        Obstacle.__init__(self, pos)
         self.__destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
 
