@@ -13,21 +13,22 @@ class Character(Item, abc.ABC):
     vel_mod = None
     cursors = None
     radius = 5
+    sight_radius = 25
 
     def __init__(self, pos: Vector):
         super().__init__(pos)
         self.__destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
-        self.__direction_vector = Vector()
 
     @property
     def director_vector(self):
-        return self.__direction_vector
+        if self.destination:
+            return self.destination - self.pos
 
     @property
     def destination(self):
-        if self.destination:
-            return self.destination[-1]
+        if self.__destination:
+            return self.__destination[-1]
 
     @destination.setter
     def destination(self, value):
@@ -37,16 +38,13 @@ class Character(Item, abc.ABC):
         self.__destination.appendleft(value)
 
     def move(self, t: int) -> bool:
-        if self.__destination:
-            self.__direction_vector = self.__destination[-1] - self.pos
-            if abs(self.__direction_vector) >= self.radius:
-                self.pos += self.__direction_vector.unit() * self.vel_mod * t
+        if self.destination:
+            if abs(self.director_vector) > self.radius:
+                self.pos += self.director_vector.unit() * self.vel_mod * t
                 return False
             else:
                 self.__destination.pop()
                 return True
-        else:
-            self.__direction_vector = Vector()
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self.pos.int(), self.radius, 0)

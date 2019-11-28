@@ -37,6 +37,10 @@ class Obstacle:
         self.points = tuple(point.int() for point in points)
         self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
 
+    def is_point_inside(self, point):
+        # FIXME mejorar esto
+        return abs(point - self.pos) <= self.radius * 1.3
+
 
 class Resource(Item, ABC):
     load = None
