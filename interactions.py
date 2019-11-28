@@ -50,5 +50,6 @@ class Interaction:
                                                                            angle_addition):
                                 if not obstacle.is_point_inside(character.pos + vector * character.sight_radius):
                                     character.destination = character.pos + vector * character.sight_radius
+                                    character.obstacle = obstacle
                                     return
                             angle_addition += increment

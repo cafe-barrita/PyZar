@@ -20,9 +20,11 @@ class Character(Item, Obstacle, abc.ABC):
         Obstacle.__init__(self, pos)
         self.__destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
+        self.obstacle = None
 
     @property
     def director_vector(self):
+        # todo meybe unit vector * radius
         if self.destination:
             return self.destination - self.pos
 
@@ -39,8 +41,16 @@ class Character(Item, Obstacle, abc.ABC):
         self.__destination.appendleft(value)
 
     def move(self, t: int) -> bool:
+        # FIXME esto seguro se puede ordenar un poco
         if self.destination:
-            if abs(self.director_vector) > self.radius:
+            if self.obstacle and self.obstacle.is_point_inside(self.destination):
+                if abs(self.pos - self.obstacle.pos) <= (self.radius + self.obstacle.radius):
+                    self.__destination.pop()
+                    return True
+                else:
+                    self.pos += self.director_vector.unit() * self.vel_mod * t
+                    return False
+            elif abs(self.director_vector) > self.radius:
                 self.pos += self.director_vector.unit() * self.vel_mod * t
                 return False
             else:
@@ -105,7 +115,8 @@ class Farmer(Character):
 
     def get_back_from_work(self, t: int):
         self.move(t)
-        if abs(self.pos - self.home.pos) <= self.radius + self.home.radius + 5:
+        # if abs(self.pos - self.home.pos) <= self.radius + self.home.radius:
+        if self.home.is_point_inside(self.pos + self.director_vector.unit() * self.radius * 2):
             self.load = 0
             self.destination = self.job.pos
             self.work_cycle_index -= 1
