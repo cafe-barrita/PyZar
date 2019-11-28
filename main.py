@@ -14,7 +14,7 @@ EVERY_SECOND_EVENT = 31
 
 
 def do_each_second():
-    Interaction.check_obstacles(farmers, {mineral, mineral2, castle})
+    Interaction.check_obstacles(farmers, {mineral, mineral2, castle}.union(farmers))
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -39,7 +39,7 @@ pressed_one: Optional[Character] = None
 mineral = Mineral(Vector(300, 100))
 mineral2 = Mineral(Vector(500, 100))
 
-pygame.time.set_timer(EVERY_SECOND_EVENT, 100)
+pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
 
 while not done:
     screen.fill(noir)

@@ -64,6 +64,9 @@ class Character(Item, abc.ABC):
     def get_cursor(self, item: Item):
         return self.cursors[item.__class__.__name__]
 
+    def is_point_inside(self, point):
+        return abs(point - self.pos) <= self.radius * 2
+
 
 class Farmer(Character):
     vel_mod = 0.05

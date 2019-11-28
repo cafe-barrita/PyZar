@@ -36,10 +36,13 @@ class Obstacle:
                   pos + Vector(-self.radius, -self.radius), pos + Vector(self.radius, -self.radius),)
         self.points = tuple(point.int() for point in points)
         self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
+        xs = [int(point.x) for point in points]
+        ys = [int(point.y) for point in points]
+        self.x_bounds = min(xs), max(xs)
+        self.y_bounds = min(ys), max(ys)
 
     def is_point_inside(self, point):
-        # FIXME mejorar esto
-        return abs(point - self.pos) <= self.radius * 1.3
+        return self.x_bounds[1] >= point.x >= self.x_bounds[0] and self.y_bounds[1] >= point.y >= self.y_bounds[0]
 
 
 class Resource(Item, ABC):
