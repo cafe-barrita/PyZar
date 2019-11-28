@@ -140,7 +140,9 @@ class Farmer(Character):
                 # FIXME que sea el más cercano
                 if abs(tree.pos - self.pos) < 50:
                     self.job = tree
-                    break
+                    return
+            self.status = Farmer.UNEMPLOYED
+
         else:
             super().actualize(surface, t)
 
