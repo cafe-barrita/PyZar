@@ -37,7 +37,7 @@ class Interaction:
     def check_obstacles(characters: List[Character], obstacles: List[Obstacle]):
         increment = angle_addition = 0.39  # pi/8
         for character in characters:
-            if character.director_vector:
+            if abs(character.director_vector):
                 for obstacle in obstacles:
                     d = abs(obstacle.pos - character.pos)
                     if d < (obstacle.radius + character.sight_radius):

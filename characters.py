@@ -18,7 +18,7 @@ class Character(Item, Obstacle, abc.ABC):
     def __init__(self, pos: Vector):
         Item.__init__(self, pos)
         Obstacle.__init__(self, pos)
-        self.__destination: Deque[Vector, ...] = deque([pos])
+        self._destination: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
         self.obstacle = None
 
@@ -27,25 +27,27 @@ class Character(Item, Obstacle, abc.ABC):
         # todo meybe unit vector * radius
         if self.destination:
             return self.destination - self.pos
+        else:
+            return Vector()
 
     @property
     def destination(self):
-        if self.__destination:
-            return self.__destination[-1]
+        if self._destination:
+            return self._destination[-1]
 
     @destination.setter
     def destination(self, value):
-        self.__destination.append(value)
+        self._destination.append(value)
 
     def append_left_destination(self, value):
-        self.__destination.appendleft(value)
+        self._destination.appendleft(value)
 
     def move(self, t: int) -> bool:
         # FIXME esto seguro se puede ordenar un poco
         if self.destination:
             if self.obstacle and self.obstacle.is_point_inside(self.destination):
                 if abs(self.pos - self.obstacle.pos) <= (self.radius + self.obstacle.radius):
-                    self.__destination.pop()
+                    self._destination.pop()
                     return True
                 else:
                     self.pos += self.director_vector.unit() * self.vel_mod * t
@@ -54,7 +56,7 @@ class Character(Item, Obstacle, abc.ABC):
                 self.pos += self.director_vector.unit() * self.vel_mod * t
                 return False
             else:
-                self.__destination.pop()
+                self._destination.pop()
                 return True
 
     def draw(self, surface: pygame.Surface):
@@ -62,7 +64,7 @@ class Character(Item, Obstacle, abc.ABC):
         if self._is_pressed:
             pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), self.radius, 1)
 
-        for dest in self.__destination:
+        for dest in self._destination:
             pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
 
     def actualize(self, surface: pygame.Surface, t: int):
@@ -118,6 +120,7 @@ class Farmer(Character):
         # if abs(self.pos - self.home.pos) <= self.radius + self.home.radius:
         if self.home.is_point_inside(self.pos + self.director_vector.unit() * self.radius * 2):
             self.load = 0
+            self._destination.pop()
             self.destination = self.job.pos
             self.work_cycle_index -= 1
 
@@ -130,6 +133,8 @@ class Farmer(Character):
                 if isinstance(self.job, Tree):
                     self.forest.tree_set.discard(self.job)
                 self.job = None
+                if self.destination:
+                    self._destination.pop()
             self.destination = self.home.pos
             self.work_cycle_index -= 1
 
@@ -137,6 +142,7 @@ class Farmer(Character):
         self.move(t)
         if abs(self.pos - self.job.pos) <= self.radius + self.job.radius + 2:
             self.work_cycle_index -= 1
+            self._destination.pop()
 
     def set_job(self, item: Union[Mineral, Tree]):
         self.job = item

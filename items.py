@@ -80,6 +80,7 @@ class Tree(Resource):
 
     def __init__(self, pos: Vector):
         super().__init__(pos)
+        # TODO self.load = 100
         self.load = 30
 
     def is_instantiable(self):
