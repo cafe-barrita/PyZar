@@ -1,12 +1,14 @@
 import abc
+import random
 from collections import deque
-from typing import Union, List, Deque
+from typing import Union, Deque
 
 import pygame
-from vector_2d import Vector
+from vector_2d import Vector, VectorPolar
 
 import cursors
 from items import Item, Mineral, Tree, Building, Forest, Obstacle
+from items_base_classes import Collective
 
 
 class Character(Item, Obstacle, abc.ABC):
@@ -16,55 +18,62 @@ class Character(Item, Obstacle, abc.ABC):
     sight_radius = 25
 
     def __init__(self, pos: Vector):
-        Item.__init__(self, pos)
         Obstacle.__init__(self, pos)
-        self._destination: Deque[Vector, ...] = deque([pos])
+        self._destinations: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
         self.obstacle = None
+
+    @property
+    def pos(self):
+        return self._pos
+
+    def pos_increment(self, value):
+        self._pos += value
+        self._destinations = deque([e + value for e in self._destinations])
 
     @property
     def director_vector(self):
         # todo meybe unit vector * radius
         if self.destination:
-            return self.destination - self.pos
+            return self.destination - self._pos
         else:
             return Vector()
 
     @property
     def destination(self):
-        if self._destination:
-            return self._destination[-1]
+        if self._destinations:
+            return self._destinations[-1]
 
     @destination.setter
     def destination(self, value):
-        self._destination.append(value)
+        self._destinations.append(value)
 
     def append_left_destination(self, value):
-        self._destination.appendleft(value)
+        self._destinations.appendleft(value)
 
     def move(self, t: int) -> bool:
         # FIXME esto seguro se puede ordenar un poco
         if self.destination:
             if self.obstacle and self.obstacle.is_point_inside(self.destination):
-                if abs(self.pos - self.obstacle.pos) <= (self.radius + self.obstacle.radius):
-                    self._destination.pop()
+                if abs(self._pos - self.obstacle.pos) <= (self.radius + self.obstacle.radius):
+                    self._destinations.pop()
                     return True
                 else:
-                    self.pos += self.director_vector.unit() * self.vel_mod * t
+                    self._pos += self.director_vector.unit() * self.vel_mod * t
                     return False
             elif abs(self.director_vector) > self.radius:
-                self.pos += self.director_vector.unit() * self.vel_mod * t
+                self._pos += self.director_vector.unit() * self.vel_mod * t
                 return False
             else:
-                self._destination.pop()
+                self._destinations.pop()
                 return True
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self.pos.int(), self.radius, 0)
+        pygame.draw.circle(surface, self.color, self._pos.int(), self.radius, 0)
         if self._is_pressed:
-            pygame.draw.circle(surface, (0, 255, 0), self.pos.int(), self.radius, 1)
+            pygame.draw.circle(surface, (0, 255, 0), self._pos.int(), self.radius, 1)
 
-        for dest in self._destination:
+        for dest in self._destinations:
             pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
 
     def actualize(self, surface: pygame.Surface, t: int):
@@ -78,7 +87,7 @@ class Character(Item, Obstacle, abc.ABC):
         return self.cursors.get(item.__class__.__name__, pygame.cursors.arrow)
 
     def is_point_inside(self, point):
-        return abs(point - self.pos) <= self.radius * 2
+        return abs(point - self._pos) <= self.radius * 2
 
 
 class Farmer(Character):
@@ -118,9 +127,9 @@ class Farmer(Character):
     def get_back_from_work(self, t: int):
         self.move(t)
         # if abs(self.pos - self.home.pos) <= self.radius + self.home.radius:
-        if self.home.is_point_inside(self.pos + self.director_vector.unit() * self.radius * 2):
+        if self.home.is_point_inside(self._pos + self.director_vector.unit() * self.radius * 2):
             self.load = 0
-            self._destination.pop()
+            self._destinations.pop()
             self.destination = self.job.pos
             self.work_cycle_index -= 1
 
@@ -131,22 +140,22 @@ class Farmer(Character):
             self.job.has_been_worked()
             if not self.job.is_alive():
                 if isinstance(self.job, Tree):
-                    self.forest.tree_set.discard(self.job)
+                    self.forest.discard(self.job)
                 self.job = None
                 if self.destination:
-                    self._destination.pop()
-            self.destination = self.home.pos
+                    self._destinations.pop()
+            self.destination = self.home._pos
             self.work_cycle_index -= 1
 
     def go_to_work(self, t: int):
         self.move(t)
-        if abs(self.pos - self.job.pos) <= self.radius + self.job.radius + 2:
+        if abs(self._pos - self.job.pos) <= self.radius + self.job.radius + 2:
             self.work_cycle_index -= 1
-            self._destination.pop()
+            self._destinations.pop()
 
     def set_job(self, item: Union[Mineral, Tree]):
         self.job = item
-        self.destination = item.pos
+        self.destination = item._pos
         if isinstance(item, Tree):
             self.status = Farmer.CHOPPER
         if isinstance(item, Mineral):
@@ -157,9 +166,9 @@ class Farmer(Character):
             self.work_cycle[self.work_cycle_index](t)
             self.draw(surface)
         elif self.status == Farmer.CHOPPER:
-            for tree in self.forest.tree_set:
+            for tree in self.forest:
                 # FIXME que sea el más cercano
-                if abs(tree.pos - self.pos) < 100:
+                if abs(tree.pos - self._pos) < 100:
                     self.job = tree
                     return
             self.status = Farmer.UNEMPLOYED
@@ -170,3 +179,23 @@ class Farmer(Character):
 
     def is_instantiable(self):
         return True
+
+
+class Characters(Collective):
+    def __init__(self, castle, forest):
+        self.farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
+                               home=castle,
+                               forest=forest) for _ in range(3)]
+
+    def actualize(self, surface: pygame.Surface, t: int):
+        for farmer in self.farmers:
+            farmer.actualize(surface, t)
+
+    def __iter__(self):
+        return iter(self.farmers)
+
+    def __add__(self, other):
+        return self.farmers + other
+
+    def __radd__(self, other):
+        return self.farmers + other

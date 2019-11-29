@@ -17,7 +17,7 @@ class Interaction:
         # TODO order the character list positionaly to improve check
         for character in characters:
             # print(abs(mouse - character.pos))
-            if abs(mouse - character.pos) < character.radius:
+            if abs(mouse - character._pos) < character.radius:
                 character.set_pressed(True)
                 Interaction.last_pressed = character
                 return Interaction.last_pressed
@@ -25,7 +25,7 @@ class Interaction:
     @staticmethod
     def get_hovered(mouse: Vector, items: Set[Item]) -> Item:
         for item in items:
-            if abs(mouse - item.pos) < item.radius:
+            if abs(mouse - item._pos) < item.radius:
                 return item
 
     @staticmethod
@@ -39,17 +39,17 @@ class Interaction:
         for character in characters:
             if abs(character.director_vector):
                 for obstacle in obstacles:
-                    d = abs(obstacle.pos - character.pos)
+                    d = abs(obstacle.pos - character._pos)
                     if d < (obstacle.radius + character.sight_radius):
                         # FIXME que mire posiciones intermedias pues si es pequeño atraviesa
                         while obstacle.is_point_inside(
-                                character.pos + character.director_vector.unit() * character.sight_radius):
+                                character._pos + character.director_vector.unit() * character.sight_radius):
                             # FIXME si entra es while true por que nada cambia la condicion de entrada
                             # FIxme IMPROVE THSI
                             for vector in Interaction.get_new_unit_vectors(character.director_vector.unit().to_polar(),
                                                                            angle_addition):
-                                if not obstacle.is_point_inside(character.pos + vector * character.sight_radius):
-                                    character.destination = character.pos + vector * character.sight_radius
+                                if not obstacle.is_point_inside(character._pos + vector * character.sight_radius):
+                                    character.destination = character._pos + vector * character.sight_radius
                                     character.obstacle = obstacle
                                     return
                             angle_addition += increment

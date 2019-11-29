@@ -5,6 +5,8 @@ from abc import ABC
 import pygame
 from vector_2d import Vector
 
+from items_base_classes import Collective
+
 
 class Item:
     color = None
@@ -14,35 +16,48 @@ class Item:
     def is_instantiable(self):
         raise TypeError(f'{self.__class__.__name__} is an abstract class and is not instantiable')
 
-    def __init__(self, pos: Vector):
-        if self.is_instantiable():
-            self.pos = pos
-
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self.pos.int(), 5, 0)
+        pygame.draw.circle(surface, self.color, self._pos.int(), 5, 0)
 
     def __str__(self):
         return self.__class__.__name__
 
     def __hash__(self):
-        return hash(repr(self.pos))
+        return hash(repr(self._pos))
 
 
 class Obstacle:
     radius = None
 
     def __init__(self, pos: Vector):
-        points = (pos + Vector(self.radius, self.radius), pos + Vector(-self.radius, self.radius),
-                  pos + Vector(-self.radius, -self.radius), pos + Vector(self.radius, -self.radius),)
+        self._pos = pos
+        self.points = None
+        self.segments = None
+        self.x_bounds = None
+        self.y_bounds = None
+        self.calc_pos()
+
+    def is_point_inside(self, point):
+        return self.x_bounds[1] >= point.x >= self.x_bounds[0] and self.y_bounds[1] >= point.y >= self.y_bounds[0]
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+        self.calc_pos()
+
+    def calc_pos(self):
+        points = (self._pos + Vector(self.radius, self.radius), self._pos + Vector(-self.radius, self.radius),
+                  self._pos + Vector(-self.radius, -self.radius), self._pos + Vector(self.radius, -self.radius),)
         self.points = tuple(point.int() for point in points)
         self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
         xs = [int(point.x) for point in points]
         ys = [int(point.y) for point in points]
         self.x_bounds = min(xs), max(xs)
         self.y_bounds = min(ys), max(ys)
-
-    def is_point_inside(self, point):
-        return self.x_bounds[1] >= point.x >= self.x_bounds[0] and self.y_bounds[1] >= point.y >= self.y_bounds[0]
 
 
 class Resource(Item, ABC):
@@ -60,12 +75,9 @@ class Mineral(Resource, Obstacle):
     radius = 20
 
     def __init__(self, pos: Vector):
-        Resource.__init__(self, pos)
+        Resource.__init__(self)
         Obstacle.__init__(self, pos)
         self.load = 8000
-        # self.points = [point.int() for point in (
-        #     pos + Vector(Mineral.radius, Mineral.radius), pos + Vector(-Mineral.radius, Mineral.radius),
-        #     pos + Vector(-Mineral.radius, -Mineral.radius), pos + Vector(Mineral.radius, -Mineral.radius),)]
 
     def is_instantiable(self):
         return True
@@ -79,32 +91,55 @@ class Tree(Resource):
     radius = 5
 
     def __init__(self, pos: Vector):
-        super().__init__(pos)
+        self._pos = pos
         # TODO self.load = 100
         self.load = 30
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
+
+    def pos_increment(self, value):
+        self._pos += value
 
     def is_instantiable(self):
         return True
 
 
-class Forest:
+class Forest(Collective):
     def __init__(self, res, obstacles):
-        self.tree_set = set()
+        self.__tree_set = set()
         for _ in range(200):
             x = random.randrange(res[0])
             y = random.randrange(res[1])
             inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
             if not inside:
-                self.tree_set.add(Tree(Vector(x, y)))
+                self.__tree_set.add(Tree(Vector(x, y)))
 
     def draw(self, screen: pygame.Surface):
-        for tree in self.tree_set:
+        for tree in self.__tree_set:
             tree.draw(screen)
+
+    def discard(self, element):
+        self.__tree_set.discard(element)
+
+    def __iter__(self):
+        return iter(self.__tree_set)
+
+    def __add__(self, other):
+        return list(self.__tree_set) + other
+
+    def __radd__(self, other):
+        return list(self.__tree_set) + other
 
 
 class Building(Item, Obstacle, ABC):
     def __init__(self, pos: Vector):
-        Item.__init__(self, pos)
+        # Item.__init__(self, pos)
         Obstacle.__init__(self, pos)
 
 

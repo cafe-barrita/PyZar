@@ -1,12 +1,11 @@
 import os
-import random
 import sys
 from typing import Optional
 
 import pygame
 from vector_2d import Vector, VectorPolar
 
-from characters import Farmer, Character
+from characters import Character, Characters
 from interactions import Interaction
 from items import Mineral, Castle, Forest
 
@@ -14,7 +13,7 @@ EVERY_SECOND_EVENT = 31
 
 
 def do_each_second():
-    Interaction.check_obstacles(farmers, obstacles + farmers)
+    Interaction.check_obstacles(characters, obstacles + characters)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -29,6 +28,7 @@ t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 20
+scroll_vector = Vector()
 
 castle = Castle(Vector(400, 300))
 pressed_one: Optional[Character] = None
@@ -36,9 +36,7 @@ mineral = Mineral(Vector(300, 100))
 mineral2 = Mineral(Vector(500, 100))
 obstacles = [castle, mineral, mineral2]
 forest = Forest(resolution, obstacles)
-farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
-                  home=castle,
-                  forest=forest) for _ in range(3)]
+characters = Characters(castle, forest)
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
 
@@ -48,14 +46,12 @@ while not done:
     forest.draw(screen)
     mineral.draw(screen)
     mineral2.draw(screen)
-    for farmer in farmers:
-        farmer.actualize(screen, t)
+    characters.actualize(screen, t)
 
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
-                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()),
-                                                  forest.tree_set.union(obstacles))
+                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest + obstacles)
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:
@@ -64,11 +60,10 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()),
-                                                       forest.tree_set.union(obstacles))
+                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest + obstacles)
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
-                pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), farmers)
+                pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), characters)
             elif event.button == 3 and pressed_one:
                 pressed_one.append_left_destination(Vector(*pygame.mouse.get_pos()))
             # elif event.button == 4:
@@ -82,8 +77,21 @@ while not done:
             done = True
 
     teclas = pygame.key.get_pressed()
-    # if teclas[pygame.K_KP_PLUS]:
-    #     ...
+    movement_vector = None
+    if teclas[pygame.K_w]:
+        movement_vector = Vector(0, 1)
+    if teclas[pygame.K_a]:
+        movement_vector = Vector(1, 0)
+    if teclas[pygame.K_s]:
+        movement_vector = Vector(0, -1)
+    if teclas[pygame.K_d]:
+        movement_vector = Vector(-1, 0)
+    if movement_vector:
+        forest.move(movement_vector)
+        characters.move(movement_vector)
+        for obstacle in obstacles:
+            obstacle.pos += movement_vector
+
     # if teclas[pygame.K_KP_MINUS]:
     #     ...
 
