@@ -1,11 +1,28 @@
 import abc
 import random
 from abc import ABC
+from typing import Tuple
 
 import pygame
 from vector_2d import Vector
 
 from items_base_classes import Collective
+
+
+class Borders:
+    def __init__(self, resolution: Tuple[int, int]):
+        self.resolution = resolution
+        self.margin = 15
+
+    def get_hovered(self, mouse: Vector):
+        if mouse.x < self.margin:
+            return Vector(1, 0)
+        if mouse.x > self.resolution[0] - self.margin:
+            return Vector(-1, 0)
+        if mouse.y < self.margin:
+            return Vector(0, 1)
+        if mouse.y > self.resolution[1] - self.margin:
+            return Vector(0, -1)
 
 
 class Item:

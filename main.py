@@ -7,7 +7,7 @@ from vector_2d import Vector, VectorPolar
 
 from characters import Character, Characters
 from interactions import Interaction
-from items import Mineral, Castle, Forest
+from items import Mineral, Castle, Forest, Borders
 
 EVERY_SECOND_EVENT = 31
 
@@ -30,6 +30,7 @@ noir = 0, 0, 0
 fps = 20
 scroll_vector = Vector()
 
+borders = Borders(resolution)
 castle = Castle(Vector(400, 300))
 pressed_one: Optional[Character] = None
 mineral = Mineral(Vector(300, 100))
@@ -47,11 +48,12 @@ while not done:
     mineral.draw(screen)
     mineral2.draw(screen)
     characters.actualize(screen, t)
-
+    mouse_vector = Vector(*pygame.mouse.get_pos())
+    movement_vector = borders.get_hovered(mouse_vector)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
-                hovered = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest + obstacles)
+                hovered = Interaction.get_hovered(mouse_vector, forest + obstacles)
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:
@@ -60,12 +62,12 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                pressed_item = Interaction.get_hovered(Vector(*pygame.mouse.get_pos()), forest + obstacles)
+                pressed_item = Interaction.get_hovered(mouse_vector, forest + obstacles)
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
-                pressed_one = Interaction.mouse_characters(Vector(*pygame.mouse.get_pos()), characters)
+                pressed_one = Interaction.mouse_characters(mouse_vector, characters)
             elif event.button == 3 and pressed_one:
-                pressed_one.append_left_destination(Vector(*pygame.mouse.get_pos()))
+                pressed_one.append_left_destination(mouse_vector)
             # elif event.button == 4:
             #     ...
             # elif event.button == 5:
@@ -77,16 +79,16 @@ while not done:
             done = True
 
     teclas = pygame.key.get_pressed()
-    movement_vector = None
     if teclas[pygame.K_w]:
         movement_vector = Vector(0, 1)
-    if teclas[pygame.K_a]:
+    elif teclas[pygame.K_a]:
         movement_vector = Vector(1, 0)
-    if teclas[pygame.K_s]:
+    elif teclas[pygame.K_s]:
         movement_vector = Vector(0, -1)
-    if teclas[pygame.K_d]:
+    elif teclas[pygame.K_d]:
         movement_vector = Vector(-1, 0)
     if movement_vector:
+        movement_vector *= 5
         forest.move(movement_vector)
         characters.move(movement_vector)
         for obstacle in obstacles:
