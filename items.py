@@ -25,6 +25,9 @@ class Item:
     def __hash__(self):
         return hash(repr(self._pos))
 
+    def is_point_inside(self, point):
+        return abs(point - self._pos) <= self.radius
+
 
 class Obstacle:
     radius = None

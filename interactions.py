@@ -25,7 +25,7 @@ class Interaction:
     @staticmethod
     def get_hovered(mouse: Vector, items: Set[Item]) -> Item:
         for item in items:
-            if abs(mouse - item._pos) < item.radius:
+            if item.is_point_inside(mouse):
                 return item
 
     @staticmethod
