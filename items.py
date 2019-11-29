@@ -88,12 +88,14 @@ class Tree(Resource):
 
 
 class Forest:
-    def __init__(self, res):
+    def __init__(self, res, obstacles):
         self.tree_set = set()
         for _ in range(200):
             x = random.randrange(res[0])
             y = random.randrange(res[1])
-            self.tree_set.add(Tree(Vector(x, y)))
+            inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
+            if not inside:
+                self.tree_set.add(Tree(Vector(x, y)))
 
     def draw(self, screen: pygame.Surface):
         for tree in self.tree_set:

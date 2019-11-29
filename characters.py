@@ -75,7 +75,7 @@ class Character(Item, Obstacle, abc.ABC):
         self._is_pressed = value
 
     def get_cursor(self, item: Item):
-        return self.cursors[item.__class__.__name__]
+        return self.cursors.get(item.__class__.__name__, pygame.cursors.arrow)
 
     def is_point_inside(self, point):
         return abs(point - self.pos) <= self.radius * 2
