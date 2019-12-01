@@ -25,11 +25,20 @@ class Borders:
 
 
 class Item:
-    color = None
+    def __init__(self, pos):
+        self._pos = self._screen_pos = pos
 
     @abstractmethod
     def is_instantiable(self):
         raise TypeError(f'{self.__class__.__name__} is an abstract class and is not instantiable')
+
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, value):
+        self._pos = value
 
     def __str__(self):
         return self.__class__.__name__
@@ -39,29 +48,41 @@ class Item:
 
 
 class RoundItem(Item, ABC):
-    def __init__(self, pos):
-        self._pos = self._screen_pos = pos
+    radius = None
+    color = None
 
     def is_point_inside(self, point):
         return abs(point - self._pos) <= self.radius
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self._pos.int(), 5, 0)
+        pygame.draw.circle(surface, self.color, self._screen_pos.int(), 5, 0)
 
 
 class SquareItem(Item, ABC):
+    radius = None
+    color = None
+
     def __init__(self, pos: Vector):
-        self._pos = self._screen_pos = pos
+        super().__init__(pos)
         self.points = None
+        self._screen_points = None
         self.segments = None
         self.x_bounds = None
         self.y_bounds = None
         self.calc_pos()
 
+    # @property
+    # def screen_pos(self):
+    #     return self._screen_pos
+
+    def screen_move(self, scroll_vector):
+        self._screen_pos += scroll_vector
+        self._screen_points = [(Vector(*point) + scroll_vector).int() for point in self._screen_points]
+
     def calc_pos(self):
         points = (self._pos + Vector(self.radius, self.radius), self._pos + Vector(-self.radius, self.radius),
                   self._pos + Vector(-self.radius, -self.radius), self._pos + Vector(self.radius, -self.radius),)
-        self.points = tuple(point.int() for point in points)
+        self.points = self._screen_points = tuple(point.int() for point in points)
         self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
         xs = [int(point.x) for point in points]
         ys = [int(point.y) for point in points]
@@ -71,17 +92,8 @@ class SquareItem(Item, ABC):
     def is_point_inside(self, point):
         return self.x_bounds[1] >= point.x >= self.x_bounds[0] and self.y_bounds[1] >= point.y >= self.y_bounds[0]
 
-    @property
-    def pos(self):
-        return self._pos
-
-    @pos.setter
-    def pos(self, value):
-        self._pos = value
-        self.calc_pos()
-
     def draw(self, surface: pygame.Surface):
-        pygame.draw.polygon(surface, self.color, self.points)
+        pygame.draw.polygon(surface, self.color, self._screen_points)
 
 
 class Resource:
@@ -99,6 +111,7 @@ class Mineral(Resource, SquareItem):
     radius = 20
 
     def __init__(self, pos: Vector):
+        self.radius = Mineral.radius
         Resource.__init__(self)
         SquareItem.__init__(self, pos)
         self.load = 8000
@@ -124,9 +137,6 @@ class Tree(Resource, RoundItem):
     @pos.setter
     def pos(self, value):
         self._pos = value
-
-    def pos_increment(self, value):
-        self._pos += value
 
     def is_instantiable(self):
         return True
@@ -163,4 +173,4 @@ class Castle(Building):
         return True
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.polygon(surface, self.color, self.points)
+        pygame.draw.polygon(surface, self.color, self._screen_points)

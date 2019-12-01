@@ -24,14 +24,6 @@ class Character(RoundItem, ABC):
         self.obstacle = None
 
     @property
-    def pos(self):
-        return self._pos
-
-    def pos_increment(self, value):
-        self._pos += value
-        self._destinations = deque([e + value for e in self._destinations])
-
-    @property
     def director_vector(self):
         # todo meybe unit vector * radius
         if self.destination:
@@ -60,18 +52,20 @@ class Character(RoundItem, ABC):
                     return True
                 else:
                     self._pos += self.director_vector.unit() * self.vel_mod * t
+                    self._screen_pos += self.director_vector.unit() * self.vel_mod * t
                     return False
             elif abs(self.director_vector) > self.radius:
                 self._pos += self.director_vector.unit() * self.vel_mod * t
+                self._screen_pos += self.director_vector.unit() * self.vel_mod * t
                 return False
             else:
                 self._destinations.pop()
                 return True
 
     def draw(self, surface: pygame.Surface):
-        pygame.draw.circle(surface, self.color, self._pos.int(), self.radius, 0)
+        pygame.draw.circle(surface, self.color, self._screen_pos.int(), self.radius, 0)
         if self._is_pressed:
-            pygame.draw.circle(surface, (0, 255, 0), self._pos.int(), self.radius, 1)
+            pygame.draw.circle(surface, (0, 255, 0), self._screen_pos.int(), self.radius, 1)
 
         # for dest in self._destinations:
         #     pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)

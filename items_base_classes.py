@@ -8,9 +8,9 @@ class Collective(ABC):
     def __init__(self, collection):
         self.collection = collection
 
-    def move(self, vector: Vector):
+    def screen_move(self, vector: Vector):
         for element in self:
-            element.pos_increment(vector)
+            element._screen_pos += vector
 
     def actualize(self, surface: pygame.Surface, t: int):
         for element in self:

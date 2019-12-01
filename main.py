@@ -39,7 +39,7 @@ forest = Forest(resolution, obstacles)
 characters = Characters(castle, forest)
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
-
+total_scroll_vector = Vector()
 while not done:
     screen.fill(noir)
     castle.draw(screen)
@@ -49,6 +49,7 @@ while not done:
     characters.actualize(screen, t)
     mouse_vector = Vector(*pygame.mouse.get_pos())
     scroll_vector = borders.get_hovered(mouse_vector)
+    mouse_vector -= total_scroll_vector
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
@@ -88,10 +89,11 @@ while not done:
         scroll_vector = Vector(-1, 0)
     if scroll_vector:
         scroll_vector *= 5
-        forest.move(scroll_vector)
-        characters.move(scroll_vector)
+        total_scroll_vector += scroll_vector
+        forest.screen_move(scroll_vector)
+        characters.screen_move(scroll_vector)
         for obstacle in obstacles:
-            obstacle.pos += scroll_vector
+            obstacle.screen_move(scroll_vector)
 
     # if teclas[pygame.K_KP_MINUS]:
     #     ...
