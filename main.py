@@ -28,7 +28,6 @@ t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 20
-scroll_vector = Vector()
 
 borders = Borders(resolution)
 castle = Castle(Vector(400, 300))
@@ -49,7 +48,7 @@ while not done:
     mineral2.draw(screen)
     characters.actualize(screen, t)
     mouse_vector = Vector(*pygame.mouse.get_pos())
-    movement_vector = borders.get_hovered(mouse_vector)
+    scroll_vector = borders.get_hovered(mouse_vector)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pressed_one:
@@ -80,19 +79,19 @@ while not done:
 
     teclas = pygame.key.get_pressed()
     if teclas[pygame.K_w]:
-        movement_vector = Vector(0, 1)
+        scroll_vector = Vector(0, 1)
     elif teclas[pygame.K_a]:
-        movement_vector = Vector(1, 0)
+        scroll_vector = Vector(1, 0)
     elif teclas[pygame.K_s]:
-        movement_vector = Vector(0, -1)
+        scroll_vector = Vector(0, -1)
     elif teclas[pygame.K_d]:
-        movement_vector = Vector(-1, 0)
-    if movement_vector:
-        movement_vector *= 5
-        forest.move(movement_vector)
-        characters.move(movement_vector)
+        scroll_vector = Vector(-1, 0)
+    if scroll_vector:
+        scroll_vector *= 5
+        forest.move(scroll_vector)
+        characters.move(scroll_vector)
         for obstacle in obstacles:
-            obstacle.pos += movement_vector
+            obstacle.pos += scroll_vector
 
     # if teclas[pygame.K_KP_MINUS]:
     #     ...
