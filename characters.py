@@ -15,7 +15,7 @@ class Character(RoundItem, ABC):
     vel_mod = None
     cursors = None
     radius = 5
-    sight_radius = 25
+    sight_radius = 50
 
     def __init__(self, pos: Vector):
         super().__init__(pos)
@@ -79,9 +79,6 @@ class Character(RoundItem, ABC):
 
     def get_cursor(self, item: Item):
         return self.cursors.get(item.__class__.__name__, pygame.cursors.arrow)
-
-    def is_point_inside(self, point):
-        return abs(point - self._pos) <= self.radius * 2
 
 
 class Farmer(Character):

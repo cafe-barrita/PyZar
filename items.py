@@ -40,6 +40,10 @@ class Item:
     def pos(self, value):
         self._pos = value
 
+    @abstractmethod
+    def is_point_inside(self, point):
+        raise NotImplementedError
+
     def __str__(self):
         return self.__class__.__name__
 
@@ -70,10 +74,6 @@ class SquareItem(Item, ABC):
         self.x_bounds = None
         self.y_bounds = None
         self.calc_pos()
-
-    # @property
-    # def screen_pos(self):
-    #     return self._screen_pos
 
     def screen_move(self, scroll_vector):
         self._screen_pos += scroll_vector
