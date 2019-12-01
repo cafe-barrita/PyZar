@@ -1,5 +1,5 @@
-import abc
 import random
+from abc import ABC
 from collections import deque
 from typing import Union, Deque
 
@@ -7,18 +7,18 @@ import pygame
 from vector_2d import Vector, VectorPolar
 
 import cursors
-from items import Item, Mineral, Tree, Building, Forest, Obstacle
+from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle
 from items_base_classes import Collective
 
 
-class Character(Item, Obstacle, abc.ABC):
+class Character(RoundItem, ABC):
     vel_mod = None
     cursors = None
     radius = 5
     sight_radius = 25
 
     def __init__(self, pos: Vector):
-        Obstacle.__init__(self, pos)
+        super().__init__(pos)
         self._destinations: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
         self.obstacle = None
@@ -73,8 +73,8 @@ class Character(Item, Obstacle, abc.ABC):
         if self._is_pressed:
             pygame.draw.circle(surface, (0, 255, 0), self._pos.int(), self.radius, 1)
 
-        for dest in self._destinations:
-            pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
+        # for dest in self._destinations:
+        #     pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
 
     def actualize(self, surface: pygame.Surface, t: int):
         self.move(t)
@@ -144,7 +144,7 @@ class Farmer(Character):
                 self.job = None
                 if self.destination:
                     self._destinations.pop()
-            self.destination = self.home._pos
+            self.destination = self.home.pos
             self.work_cycle_index -= 1
 
     def go_to_work(self, t: int):
@@ -182,20 +182,8 @@ class Farmer(Character):
 
 
 class Characters(Collective):
-    def __init__(self, castle, forest):
-        self.farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
-                               home=castle,
-                               forest=forest) for _ in range(3)]
-
-    def actualize(self, surface: pygame.Surface, t: int):
-        for farmer in self.farmers:
-            farmer.actualize(surface, t)
-
-    def __iter__(self):
-        return iter(self.farmers)
-
-    def __add__(self, other):
-        return self.farmers + other
-
-    def __radd__(self, other):
-        return self.farmers + other
+    def __init__(self, castle: Castle, forest: Forest):
+        farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
+                          home=castle,
+                          forest=forest) for _ in range(3)]
+        super().__init__(farmers)

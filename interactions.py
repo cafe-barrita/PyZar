@@ -4,7 +4,7 @@ from typing import Set, Optional, List
 from vector_2d import Vector, VectorPolar
 
 from characters import Character
-from items import Item, Obstacle
+from items import Item
 
 
 class Interaction:
@@ -34,7 +34,7 @@ class Interaction:
                 VectorPolar(1, vector_polar.angle - angle).to_cartesian())
 
     @staticmethod
-    def check_obstacles(characters: List[Character], obstacles: List[Obstacle]):
+    def check_obstacles(characters: List[Character], obstacles: List[Item]):
         increment = angle_addition = 0.39  # pi/8
         for character in characters:
             if abs(character.director_vector):

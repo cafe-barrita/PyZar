@@ -1,21 +1,30 @@
-import abc
+from abc import ABC
 
+import pygame
 from vector_2d import Vector
 
 
-class Collective:
+class Collective(ABC):
+    def __init__(self, collection):
+        self.collection = collection
+
     def move(self, vector: Vector):
         for element in self:
             element.pos_increment(vector)
 
-    @abc.abstractmethod
+    def actualize(self, surface: pygame.Surface, t: int):
+        for element in self:
+            element.actualize(surface, t)
+
+    def draw(self, screen: pygame.Surface):
+        for e in self:
+            e.draw(screen)
+
     def __iter__(self):
-        ...
+        return iter(self.collection)
 
-    @abc.abstractmethod
     def __add__(self, other):
-        ...
+        return list(self.collection) + other
 
-    @abc.abstractmethod
     def __radd__(self, other):
-        ...
+        return list(self.collection) + other
