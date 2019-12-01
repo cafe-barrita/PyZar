@@ -5,8 +5,6 @@ from typing import Tuple
 import pygame
 from vector_2d import Vector
 
-from items_base_classes import Collective
-
 
 class Borders:
     def __init__(self, resolution: Tuple[int, int]):
@@ -142,21 +140,6 @@ class Tree(Resource, RoundItem):
         return True
 
 
-class Forest(Collective):
-    def __init__(self, res, obstacles):
-        tree_set = set()
-        for _ in range(200):
-            x = random.randrange(res[0])
-            y = random.randrange(res[1])
-            inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
-            if not inside:
-                tree_set.add(Tree(Vector(x, y)))
-        super().__init__(tree_set)
-
-    def discard(self, element):
-        self.collection.discard(element)
-
-
 class Building(SquareItem, ABC):
     def __init__(self, pos: Vector):
         super().__init__(pos)
@@ -174,3 +157,44 @@ class Castle(Building):
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.polygon(surface, self.color, self._screen_points)
+
+
+class Collective(ABC):
+    def __init__(self, collection):
+        self.collection = collection
+
+    def screen_move(self, vector: Vector):
+        for element in self:
+            element._screen_pos += vector
+
+    def actualize(self, surface: pygame.Surface, t: int):
+        for element in self:
+            element.actualize(surface, t)
+
+    def draw(self, screen: pygame.Surface):
+        for e in self:
+            e.draw(screen)
+
+    def __iter__(self):
+        return iter(self.collection)
+
+    def __add__(self, other):
+        return list(self.collection) + other
+
+    def __radd__(self, other):
+        return list(self.collection) + other
+
+
+class Forest(Collective):
+    def __init__(self, res, obstacles):
+        tree_set = set()
+        for _ in range(200):
+            x = random.randrange(res[0])
+            y = random.randrange(res[1])
+            inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
+            if not inside:
+                tree_set.add(Tree(Vector(x, y)))
+        super().__init__(tree_set)
+
+    def discard(self, element):
+        self.collection.discard(element)

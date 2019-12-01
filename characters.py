@@ -7,8 +7,7 @@ import pygame
 from vector_2d import Vector, VectorPolar
 
 import cursors
-from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle
-from items_base_classes import Collective
+from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle, Collective
 
 
 class Character(RoundItem, ABC):
