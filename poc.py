@@ -8,7 +8,7 @@ from vector_2d import Vector, VectorPolar
 from characters import Character, Characters
 from interactions import Interaction
 from items import Mineral, Castle, Forest, Borders
-from sea import Sea
+from sea import Terrain
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -22,7 +22,7 @@ t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 20
-sea = Sea(resolution)
+sea = Terrain(resolution)
 
 while not done:
     screen.fill(noir)
