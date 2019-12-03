@@ -3,7 +3,7 @@ import sys
 from typing import Optional
 
 import pygame
-from vector_2d import Vector, VectorPolar
+from vector_2d import Vector
 
 from characters import Character, Characters
 from interactions import Interaction
