@@ -1,14 +1,10 @@
 import os
 import sys
-from typing import Optional
 
 import pygame
-from vector_2d import Vector, VectorPolar
+from vector_2d import Vector
 
-from characters import Character, Characters
-from interactions import Interaction
-from items import Mineral, Castle, Forest, Borders
-from sea import Terrain
+from terrain import Terrain
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -21,7 +17,7 @@ clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
-fps = 20
+fps = 60
 sea = Terrain(resolution)
 
 while not done:
