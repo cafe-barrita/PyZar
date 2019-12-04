@@ -52,3 +52,20 @@ class Interaction:
                                     character.obstacle = obstacle
                                     return
                             angle_addition += increment
+
+    @staticmethod
+    def check_sea(characters, sea):
+        increment: float
+        increment = angle_addition = 0.39  # pi/8
+        for character in characters:
+            if abs(character.director_vector):
+                while sea.is_point_inside(character.pos + character.director_vector.unit() * character.sight_radius):
+                    # FIXME si entra es while true por que nada cambia la condicion de entrada
+                    # FIxme IMPROVE THSI
+                    for vector in Interaction.get_new_unit_vectors(character.director_vector.unit().to_polar(),
+                                                                   angle_addition):
+                        if not sea.is_point_inside(character.pos + vector * character.sight_radius):
+                            character.destination = character.pos + vector * character.sight_radius
+                            # character.obstacle = sea
+                            return
+                    angle_addition += increment

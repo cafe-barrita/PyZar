@@ -8,19 +8,21 @@ from vector_2d import Vector
 from characters import Character, Characters
 from interactions import Interaction
 from items import Mineral, Castle, Forest, Borders
+from terrain import Terrain
 
 EVERY_SECOND_EVENT = 31
 
 
 def do_each_second():
     Interaction.check_obstacles(characters, obstacles + characters)
+    Interaction.check_sea(characters, sea)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
-resolution = 1200, 800
+resolution = 150, 150
 pygame.display.set_caption('PyZar')
 screen = pygame.display.set_mode(resolution)
 clock = pygame.time.Clock()
@@ -29,6 +31,7 @@ done = False
 noir = 0, 0, 0
 fps = 20
 
+sea = Terrain(resolution)
 borders = Borders(resolution)
 castle = Castle(Vector(400, 300))
 pressed_one: Optional[Character] = None
@@ -46,6 +49,7 @@ while not done:
     forest.draw(screen)
     mineral.draw(screen)
     mineral2.draw(screen)
+    sea.draw(screen, t)
     characters.actualize(screen, t)
     mouse_vector = Vector(*pygame.mouse.get_pos())
     scroll_vector = borders.get_hovered(mouse_vector)
@@ -87,11 +91,12 @@ while not done:
         scroll_vector = Vector(0, -1)
     elif teclas[pygame.K_d]:
         scroll_vector = Vector(-1, 0)
-    if scroll_vector:
+    if scroll_vector and pygame.mouse.get_focused():
         scroll_vector *= 5
         total_scroll_vector += scroll_vector
         forest.screen_move(scroll_vector)
         characters.screen_move(scroll_vector)
+        sea.screen_move(scroll_vector)
         for obstacle in obstacles:
             obstacle.screen_move(scroll_vector)
 
