@@ -1,2 +1,5 @@
 pygame
 vector_2d
+numpy
+scipy
+scikit-image

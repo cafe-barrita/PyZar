@@ -10,7 +10,7 @@ if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
-resolution = 1200, 800
+resolution = 300, 200
 pygame.display.set_caption('PyZar')
 screen = pygame.display.set_mode(resolution)
 clock = pygame.time.Clock()
