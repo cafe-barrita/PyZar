@@ -14,81 +14,61 @@ class Terrain(Item):
         return True
 
     @kronos
-    def __init__(self, res):
+    def __init__(self, visible_res, window_pos, pos=Vector(0, 0), res=(int(2e3), int(2e3))):
         # FIXME el terreno debe ser mucho más grande que el mapa visible!!!!!
-        super().__init__(None)
-        self.res = res
-        self.sea_threshold = 0.4
-        perlin = PerlinNoiseFactory(2, 4)
-        self.noise = np.empty(shape=res)
-        self.sea_dict = {}
-        for y in range(res[1]):
-            for x in range(res[0]):
-                noise = perlin(x / res[0], y / res[1])
-                self.noise[x, y] = noise
-                if noise < self.sea_threshold:
-                    if x not in self.sea_dict:
-                        self.sea_dict[x] = {}
-                    self.sea_dict[x][y] = 1
-
-        self.noise -= self.noise.min()
-        self.noise /= self.noise.max()
+        super().__init__(pos, window_pos)
+        self.res = Vector(*res)
+        self.tile = 20
+        self.window_pos = Vector(*window_pos)
+        self.visible_res = Vector(*visible_res)
+        self.sea_threshold = None
+        self.perlin = PerlinNoiseFactory(2, 4)
+        self.noise_res = self.res / self.tile
+        self.noise = np.empty(shape=(self.noise_res.int()))
+        self.terrain_set = set()
+        self.sea_set = set()
+        self.calc_noise()
         # TODO meter en un diccionario
-        self.dict_is_corner_x = {0: {0: (0, 0),
-                                     self.res[1] - 1: (0, self.res[1] - 1),
-                                     },
-                                 self.res[0] - 1: {0: (self.res[0] - 1, 0),
-                                                   self.res[1] - 1: (self.res[0] - 1, self.res[1] - 1),
-                                                   },
-                                 }
-        self.dict_is_corner_y = {0: {0: (0, 0),
-                                     self.res[0] - 1: (self.res[0] - 1, 0),
-                                     },
-                                 self.res[1] - 1: {0: (0, self.res[1] - 1),
-                                                   self.res[0] - 1: (self.res[0] - 1, self.res[1] - 1),
-                                                   },
-                                 }
         self.isolines = []
-        self.isolines = []
-        self.calc_contours()
+        self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
 
-    def calc_contours(self):
-        self.isolines = [[(int(x), int(y)) for x, y in list(contour)] for contour in
-                         measure.find_contours(self.noise, self.sea_threshold, fully_connected='low',
+    @kronos
+    def calc_noise(self, ):
+        for x in range(int(self.noise_res.x)):
+            for y in range(int(self.noise_res.y)):
+                noise = self.perlin(x / self.noise_res.x, y / self.noise_res.y)
+                self.noise[x, y] = noise
+                # if noise < self.sea_threshold:
+                #     self.sea_set.add((x, y))
+        self.sea_threshold = (self.noise.max() + self.noise.min()) / 2
+
+    def calc_contours(self, v1, v2):
+        v1 /= self.tile
+        v2 /= self.tile
+        v1 = v1.int_vector()
+        v2 = v2.int_vector()
+        element = self.noise.min()
+        noise = self.noise[int(v1.x):int(v2.x), int(v1.y): int(v2.y)]
+        noise = np.insert(noise, 0, element, axis=0)
+        noise = np.insert(noise, len(noise), element, axis=0)
+        noise = np.insert(noise, 0, element, axis=1)
+        noise = np.insert(noise, len(noise[1]), element, axis=1)
+
+        self.isolines = [[(int(self.tile * x), int(self.tile * y)) for x, y in list(contour)] for contour in
+                         measure.find_contours(noise,
+                                               self.sea_threshold, fully_connected='low',
                                                positive_orientation='low')]
 
-        # add corners
-        # FIXME it do not add corners if isoline touches oposite sides
-        for i, isoline in enumerate(self.isolines):
-            print(isoline)
-            try:
-                point = self.dict_is_corner_x[isoline[0][0]][isoline[-1][1]]
-            except KeyError:
-                try:
-                    point = self.dict_is_corner_y[isoline[0][1]][isoline[-1][0]]
-                except KeyError:
-                    pass
-                else:
-                    print('RinconY')
-                    isoline.append(point)
-            else:
-                print('RinconX')
-                isoline.append(point)
-
     def is_point_inside(self, point):
-        x = point.x
-        return x in self.sea_dict and point.y in self.sea_dict[x]
+        return point.int() in self.sea_set
 
     def draw(self, screen):
-        # print(t)
-        # for x in range(0, self.res[0], self.tile_side):
-        #     for y in range(0, self.res[1], self.tile_side):
-        #         g = self.noise[x // self.tile_side][y // self.tile_side]
-        #         pygame.draw.circle(screen, (0, g, 255 - g), (x, y), self.tile_side)
-        # pygame.draw.circle(screen, (g, g, 255), (x, y), self.tile_side)
-
         for isoline in self.isolines:
-            pygame.draw.polygon(screen, (0, 0, 255), isoline)
+            if len(isoline) > 2:
+                pygame.draw.polygon(screen, (0, 0, 200), isoline)
 
+    @kronos
     def screen_move(self, scroll_vector):
-        self.isolines = [[(Vector(*point) + scroll_vector).int() for point in isoline] for isoline in self.isolines]
+        # FIXME hay que mover el sea_set
+        self.window_pos -= scroll_vector
+        self.calc_contours(self.window_pos, self.window_pos + self.visible_res)

@@ -2,6 +2,7 @@ import time
 import unittest
 
 import pygame
+from vector_2d import Vector
 
 from terrain import Terrain
 
@@ -48,9 +49,18 @@ class TestTerrain(unittest.TestCase):
 
     def draw(self, isoline):
         pygame.init()
-        screen = pygame.display.set_mode((300, 300))
+        screen = pygame.display.set_mode((100, 100))
         print(isoline)
         isoline = tuple((x * 30, y * 30) for x, y in isoline)
         pygame.draw.polygon(screen, (255, 0, 0), isoline, 1)
         pygame.display.flip()
         time.sleep(10)
+
+    def test_calc_noise(self):
+        terrain = Terrain((10, 10))
+        terrain.screen_move(Vector(1, 0))
+        terrain.screen_move(Vector(2, 0))
+        terrain.screen_move(Vector(3, 0))
+        terrain.screen_move(Vector(2, 0))
+        terrain.screen_move(Vector(1, 0))
+        terrain.screen_move(Vector(-1, 0))
