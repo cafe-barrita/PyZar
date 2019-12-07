@@ -7,7 +7,7 @@ from vector_2d import Vector
 
 from characters import Character, Characters
 from interactions import Interaction
-from items import Mineral, Castle, Forest, Borders
+from items import Mineral, Castle, Forest, Borders, Tree
 from terrain import Terrain
 
 EVERY_SECOND_EVENT = 31
@@ -15,47 +15,57 @@ EVERY_SECOND_EVENT = 31
 
 def do_each_second():
     Interaction.check_obstacles(characters, obstacles + characters)
-    Interaction.check_sea(characters, sea)
+    # Interaction.check_sea(characters, terrain)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
-resolution = 150, 150
+resolution = 1200, 800
 pygame.display.set_caption('PyZar')
 screen = pygame.display.set_mode(resolution)
 clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
-fps = 20
+fps = 60
 
-sea = Terrain(resolution)
 borders = Borders(resolution)
-castle = Castle(Vector(400, 300))
+window_pos = Vector(400, 300)
+terrain = Terrain(resolution, window_pos)
+castle = Castle(Vector(400, 300), window_pos)
 pressed_one: Optional[Character] = None
-mineral = Mineral(Vector(300, 100))
-mineral2 = Mineral(Vector(500, 100))
+mineral = Mineral(Vector(300, 100), window_pos)
+mineral2 = Mineral(Vector(500, 100), window_pos)
 obstacles = [castle, mineral, mineral2]
-forest = Forest(resolution, obstacles)
-characters = Characters(castle, forest)
+forest = Forest(resolution, obstacles, window_pos)
+characters = Characters(castle, forest, window_pos)
+# tree = Tree(Vector(400, 300), window_pos)
+# tree.color = (255, 255, 0)
+# tree.radius = 500
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
-total_scroll_vector = Vector()
 while not done:
     screen.fill(noir)
     castle.draw(screen)
     forest.draw(screen)
     mineral.draw(screen)
     mineral2.draw(screen)
-    sea.draw(screen, t)
+    # tree.draw(screen)
+    terrain.draw(screen)
     characters.actualize(screen, t)
-    mouse_vector = Vector(*pygame.mouse.get_pos())
-    scroll_vector = borders.get_hovered(mouse_vector)
-    mouse_vector -= total_scroll_vector
+    mouse_vector = Vector(*pygame.mouse.get_pos()) + window_pos
+    scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
+    # mouse_vector -= total_scroll_vector
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
+            # print('mouse', pygame.mouse.get_pos())
+            # print('mouse on map', mouse_vector)
+            # print('window', window_pos)
+            # print()
+            # mouse_peq = mouse_vector / terrain.tile
+            # print(terrain.sea_threshold, terrain.noise[int(mouse_peq[0]), int(mouse_peq[1])])
             if pressed_one:
                 hovered = Interaction.get_hovered(mouse_vector, forest + obstacles)
                 if hovered:
@@ -67,6 +77,7 @@ while not done:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 pressed_item = Interaction.get_hovered(mouse_vector, forest + obstacles)
+                print(mouse_vector)
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(mouse_vector, characters)
@@ -92,11 +103,11 @@ while not done:
     elif teclas[pygame.K_d]:
         scroll_vector = Vector(-1, 0)
     if scroll_vector and pygame.mouse.get_focused():
-        scroll_vector *= 5
-        total_scroll_vector += scroll_vector
+        window_pos -= scroll_vector
         forest.screen_move(scroll_vector)
+        # tree.screen_move(scroll_vector)
         characters.screen_move(scroll_vector)
-        sea.screen_move(scroll_vector)
+        terrain.screen_move(scroll_vector)
         for obstacle in obstacles:
             obstacle.screen_move(scroll_vector)
 

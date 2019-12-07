@@ -13,18 +13,20 @@ class Borders:
 
     def get_hovered(self, mouse: Vector):
         if mouse.x < self.margin:
-            return Vector(1, 0)
+            return Vector(5, 0)
         if mouse.x > self.resolution[0] - self.margin:
-            return Vector(-1, 0)
+            return Vector(-5, 0)
         if mouse.y < self.margin:
-            return Vector(0, 1)
+            return Vector(0, 5)
         if mouse.y > self.resolution[1] - self.margin:
-            return Vector(0, -1)
+            return Vector(0, -5)
 
 
 class Item:
-    def __init__(self, pos):
-        self._pos = self._screen_pos = pos
+    def __init__(self, pos, window_pos: Vector):
+        self._pos = pos
+        self._screen_pos = pos - window_pos
+        print(self.__class__.__name__, self._screen_pos)
 
     @abstractmethod
     def is_instantiable(self):
@@ -56,6 +58,9 @@ class RoundItem(Item, ABC):
     def is_point_inside(self, point):
         return abs(point - self._pos) <= self.radius
 
+    def screen_move(self, scroll_vector):
+        self._screen_pos += scroll_vector
+
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self._screen_pos.int(), 5, 0)
 
@@ -64,8 +69,8 @@ class SquareItem(Item, ABC):
     radius = None
     color = None
 
-    def __init__(self, pos: Vector):
-        super().__init__(pos)
+    def __init__(self, pos: Vector, window_pos: Vector):
+        super().__init__(pos, window_pos)
         self.points = None
         self._screen_points = None
         self.segments = None
@@ -78,10 +83,14 @@ class SquareItem(Item, ABC):
         self._screen_points = [(Vector(*point) + scroll_vector).int() for point in self._screen_points]
 
     def calc_pos(self):
+        screen_points = (
+            self._screen_pos + Vector(self.radius, self.radius), self._screen_pos + Vector(-self.radius, self.radius),
+            self._screen_pos + Vector(-self.radius, -self.radius),
+            self._screen_pos + Vector(self.radius, -self.radius),)
         points = (self._pos + Vector(self.radius, self.radius), self._pos + Vector(-self.radius, self.radius),
                   self._pos + Vector(-self.radius, -self.radius), self._pos + Vector(self.radius, -self.radius),)
-        self.points = self._screen_points = tuple(point.int() for point in points)
-        self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
+        self._screen_points = tuple(point.int() for point in screen_points)
+        # self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
         xs = [int(point.x) for point in points]
         ys = [int(point.y) for point in points]
         self.x_bounds = min(xs), max(xs)
@@ -108,10 +117,10 @@ class Mineral(Resource, SquareItem):
     color = 255, 150, 100
     radius = 20
 
-    def __init__(self, pos: Vector):
+    def __init__(self, pos: Vector, window_pos: Vector):
         self.radius = Mineral.radius
         Resource.__init__(self)
-        SquareItem.__init__(self, pos)
+        SquareItem.__init__(self, pos, window_pos)
         self.load = 8000
 
     def is_instantiable(self):
@@ -122,8 +131,8 @@ class Tree(Resource, RoundItem):
     color = 100, 200, 10
     radius = 5
 
-    def __init__(self, pos: Vector):
-        super().__init__(pos)
+    def __init__(self, pos: Vector, window_pos: Vector):
+        super().__init__(pos, window_pos)
         self._pos = pos
         # TODO self.load = 100
         self.load = 30
@@ -141,15 +150,15 @@ class Tree(Resource, RoundItem):
 
 
 class Building(SquareItem, ABC):
-    def __init__(self, pos: Vector):
-        super().__init__(pos)
+    def __init__(self, pos: Vector, window_pos: Vector):
+        super().__init__(pos, window_pos)
 
 
 class Castle(Building):
     radius = 30
 
-    def __init__(self, pos: Vector):
-        super().__init__(pos)
+    def __init__(self, pos: Vector, window_pos: Vector):
+        super().__init__(pos, window_pos)
         self.color = 0, 100, 200
 
     def is_instantiable(self):
@@ -165,7 +174,7 @@ class Collective(ABC):
 
     def screen_move(self, vector: Vector):
         for element in self:
-            element._screen_pos += vector
+            element.screen_move(vector)
 
     def actualize(self, surface: pygame.Surface, t: int):
         for element in self:
@@ -186,14 +195,14 @@ class Collective(ABC):
 
 
 class Forest(Collective):
-    def __init__(self, res, obstacles):
+    def __init__(self, res, obstacles, window_pos: Vector):
         tree_set = set()
         for _ in range(200):
             x = random.randrange(res[0])
             y = random.randrange(res[1])
             inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
             if not inside:
-                tree_set.add(Tree(Vector(x, y)))
+                tree_set.add(Tree(Vector(x, y), window_pos))
         super().__init__(tree_set)
 
     def discard(self, element):
