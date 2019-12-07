@@ -41,6 +41,13 @@ class Terrain(Item):
                 # if noise < self.sea_threshold:
                 #     self.sea_set.add((x, y))
         self.sea_threshold = (self.noise.max() + self.noise.min()) / 2
+        for x, col in enumerate(self.noise):
+            for y, row in enumerate(col):
+                if self.noise[x, y] > self.sea_threshold:
+                    self.sea_set.update(
+                        {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
+                         range(y * self.tile, (y + 1) * self.tile)})
+        # print(self.sea_set)
 
     def calc_contours(self, v1, v2):
         v1 /= self.tile

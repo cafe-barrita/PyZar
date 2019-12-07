@@ -26,7 +26,7 @@ class Item:
     def __init__(self, pos, window_pos: Vector):
         self._pos = pos
         self._screen_pos = pos - window_pos
-        print(self.__class__.__name__, self._screen_pos)
+        # print(self.__class__.__name__, self._screen_pos)
 
     @abstractmethod
     def is_instantiable(self):

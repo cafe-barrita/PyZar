@@ -15,7 +15,7 @@ EVERY_SECOND_EVENT = 31
 
 def do_each_second():
     Interaction.check_obstacles(characters, obstacles + characters)
-    # Interaction.check_sea(characters, terrain)
+    Interaction.check_sea(characters, terrain)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
