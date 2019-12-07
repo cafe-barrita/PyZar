@@ -48,15 +48,14 @@ class Terrain(Item):
         v1 = v1.int_vector()
         v2 = v2.int_vector()
         element = self.noise.min()
-        noise = self.noise[int(v1.x):int(v2.x), int(v1.y): int(v2.y)]
+        noise = self.noise[int(v1.x):int(v2.x + 1), int(v1.y): int(v2.y + 1)]
         noise = np.insert(noise, 0, element, axis=0)
         noise = np.insert(noise, len(noise), element, axis=0)
         noise = np.insert(noise, 0, element, axis=1)
         noise = np.insert(noise, len(noise[1]), element, axis=1)
 
-        self.isolines = [[(int(self.tile * x), int(self.tile * y)) for x, y in list(contour)] for contour in
-                         measure.find_contours(noise,
-                                               self.sea_threshold, fully_connected='low',
+        self.isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
+                         measure.find_contours(noise, self.sea_threshold, fully_connected='low',
                                                positive_orientation='low')]
 
     def is_point_inside(self, point):
