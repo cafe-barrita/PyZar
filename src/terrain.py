@@ -44,13 +44,15 @@ class Terrain(Item):
         for x, col in enumerate(self.noise):
             for y, row in enumerate(col):
                 if self.noise[x, y] > self.sea_threshold:
-                    self.sea_set.update(
-                        {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
-                         range(y * self.tile, (y + 1) * self.tile)})
+                    self.sea_set.add((x, y))
+                    # self.sea_set.update(
+                    #     {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
+                    #      range(y * self.tile, (y + 1) * self.tile)})
                 else:
-                    self.terrain_set.update(
-                        {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
-                         range(y * self.tile, (y + 1) * self.tile)})
+                    self.terrain_set.add((x, y))
+                    # self.terrain_set.update(
+                    # {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
+                    #  range(y * self.tile, (y + 1) * self.tile)})
         # print(self.sea_set)
 
     def calc_contours(self, v1, v2):
@@ -70,6 +72,7 @@ class Terrain(Item):
         print(self.isolines[0][0])
 
     def is_point_inside(self, point):
+        point = point / self.tile
         return point.int() in self.sea_set
 
     def draw(self, screen):
