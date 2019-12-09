@@ -22,24 +22,25 @@ if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
-resolution = 1200, 800
+screen_resolution = 1200, 800
+map_resolution = int(2e3), int(2e3)
 pygame.display.set_caption('PyZar')
-screen = pygame.display.set_mode(resolution)
+screen = pygame.display.set_mode(screen_resolution)
 clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 60
 
-borders = Borders(resolution)
+borders = Borders(screen_resolution)
 window_pos = Vector(400, 300)
-terrain = Terrain(resolution, window_pos)
+terrain = Terrain(screen_resolution, window_pos, map_resolution)
 castle = Castle(Vector(400, 300), window_pos)
 pressed_one: Optional[Character] = None
 mineral = Mineral(Vector(300, 100), window_pos)
 mineral2 = Mineral(Vector(500, 100), window_pos)
 obstacles = [castle, mineral, mineral2]
-forest = Forest(resolution, obstacles, window_pos)
+forest = Forest(map_resolution, obstacles + [terrain], window_pos)
 characters = Characters(castle, forest, window_pos)
 # tree = Tree(Vector(400, 300), window_pos)
 # tree.color = (255, 255, 0)
@@ -48,12 +49,12 @@ characters = Characters(castle, forest, window_pos)
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
 while not done:
     screen.fill(noir)
+    terrain.draw(screen)
     castle.draw(screen)
     forest.draw(screen)
     mineral.draw(screen)
     mineral2.draw(screen)
     # tree.draw(screen)
-    terrain.draw(screen)
     characters.actualize(screen, t)
     mouse_vector = Vector(*pygame.mouse.get_pos()) + window_pos
     scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))

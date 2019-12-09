@@ -14,7 +14,7 @@ class Terrain(Item):
         return True
 
     @kronos
-    def __init__(self, visible_res, window_pos, pos=Vector(0, 0), res=(int(2e3), int(2e3))):
+    def __init__(self, visible_res, window_pos, res, pos=Vector(0, 0)):
         # FIXME el terreno debe ser mucho más grande que el mapa visible!!!!!
         super().__init__(pos, window_pos)
         self.res = Vector(*res)
@@ -47,13 +47,16 @@ class Terrain(Item):
                     self.sea_set.update(
                         {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
                          range(y * self.tile, (y + 1) * self.tile)})
+                else:
+                    self.terrain_set.update(
+                        {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
+                         range(y * self.tile, (y + 1) * self.tile)})
         # print(self.sea_set)
 
     def calc_contours(self, v1, v2):
         v1 /= self.tile
         v2 /= self.tile
-        v1 = v1.int_vector()
-        v2 = v2.int_vector()
+        print(v1, v2)
         element = self.noise.min()
         noise = self.noise[int(v1.x):int(v2.x + 1), int(v1.y): int(v2.y + 1)]
         noise = np.insert(noise, 0, element, axis=0)
@@ -64,6 +67,7 @@ class Terrain(Item):
         self.isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
                          measure.find_contours(noise, self.sea_threshold, fully_connected='low',
                                                positive_orientation='low')]
+        print(self.isolines[0][0])
 
     def is_point_inside(self, point):
         return point.int() in self.sea_set

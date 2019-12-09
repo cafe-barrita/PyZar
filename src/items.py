@@ -150,14 +150,16 @@ class Tree(Resource, RoundItem):
 
 
 class Building(SquareItem, ABC):
-    def __init__(self, pos: Vector, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    ...
+    # def __init__(self, pos: Vector, window_pos: Vector):
+    #     super().__init__(pos, window_pos)
 
 
 class Castle(Building):
     radius = 30
 
     def __init__(self, pos: Vector, window_pos: Vector):
+
         super().__init__(pos, window_pos)
         self.color = 0, 100, 200
 
@@ -195,11 +197,11 @@ class Collective(ABC):
 
 
 class Forest(Collective):
-    def __init__(self, res, obstacles, window_pos: Vector):
+    def __init__(self, map_resolution, obstacles, window_pos: Vector):
         tree_set = set()
-        for _ in range(200):
-            x = random.randrange(res[0])
-            y = random.randrange(res[1])
+        for _ in range(1000):
+            x = random.randrange(map_resolution[0])
+            y = random.randrange(map_resolution[1])
             inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
             if not inside:
                 tree_set.add(Tree(Vector(x, y), window_pos))
