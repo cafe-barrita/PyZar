@@ -22,7 +22,7 @@ class Terrain(Item):
         self.window_pos = Vector(*window_pos)
         self.visible_res = Vector(*visible_res)
         self.sea_threshold = None
-        self.perlin = PerlinNoiseFactory(2, 4)
+        self.perlin = PerlinNoiseFactory(2, 4, tile=(0, 3))
         self.noise_res = self.res / self.tile
         self.noise = np.empty(shape=(self.noise_res.int()))
         self.terrain_set = set()
@@ -38,22 +38,13 @@ class Terrain(Item):
             for y in range(int(self.noise_res.y)):
                 noise = self.perlin(x / self.noise_res.x, y / self.noise_res.y)
                 self.noise[x, y] = noise
-                # if noise < self.sea_threshold:
-                #     self.sea_set.add((x, y))
         self.sea_threshold = (self.noise.max() + self.noise.min()) / 2
         for x, col in enumerate(self.noise):
             for y, row in enumerate(col):
                 if self.noise[x, y] > self.sea_threshold:
                     self.sea_set.add((x, y))
-                    # self.sea_set.update(
-                    #     {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
-                    #      range(y * self.tile, (y + 1) * self.tile)})
                 else:
                     self.terrain_set.add((x, y))
-                    # self.terrain_set.update(
-                    # {(i, j) for i in range(x * self.tile, (x + 1) * self.tile) for j in
-                    #  range(y * self.tile, (y + 1) * self.tile)})
-        # print(self.sea_set)
 
     def calc_contours(self, v1, v2):
         v1 /= self.tile
@@ -69,7 +60,7 @@ class Terrain(Item):
         self.isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
                          measure.find_contours(noise, self.sea_threshold, fully_connected='low',
                                                positive_orientation='low')]
-        print(self.isolines[0][0])
+        # print(self.isolines[0][0])
 
     def is_point_inside(self, point):
         point = point / self.tile

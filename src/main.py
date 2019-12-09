@@ -23,7 +23,7 @@ if sys.platform == 'win32' or sys.platform == 'win64':
 
 pygame.init()
 screen_resolution = 1200, 800
-map_resolution = int(2e3), int(2e3)
+map_resolution = int(9e3), int(9e3)
 pygame.display.set_caption('PyZar')
 screen = pygame.display.set_mode(screen_resolution)
 clock = pygame.time.Clock()
