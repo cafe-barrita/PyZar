@@ -47,6 +47,7 @@ class Terrain(Item):
                     self.terrain_set.add((x, y))
 
     def calc_contours(self, v1, v2):
+        # FIXME this way shadows islands
         v1 /= self.tile
         v2 /= self.tile
         print(v1, v2)

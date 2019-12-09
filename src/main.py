@@ -1,8 +1,10 @@
+import collections
 import os
 import sys
 from typing import Optional
 
 import pygame
+from pygame.rect import Rect
 from vector_2d import Vector
 
 from characters import Character, Characters
@@ -23,7 +25,7 @@ if sys.platform == 'win32' or sys.platform == 'win64':
 
 pygame.init()
 screen_resolution = 1200, 800
-map_resolution = int(9e3), int(9e3)
+map_resolution = int(2e3), int(2e3)
 pygame.display.set_caption('PyZar')
 screen = pygame.display.set_mode(screen_resolution)
 clock = pygame.time.Clock()
@@ -31,6 +33,7 @@ t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 60
+fps_to_show = collections.deque([60] * 60)
 
 borders = Borders(screen_resolution)
 window_pos = Vector(400, 300)
@@ -47,6 +50,10 @@ characters = Characters(castle, forest, window_pos)
 # tree.radius = 500
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
+font = pygame.font.Font('freesansbold.ttf', 20)
+text = font.render('FPS', True, (255, 0, 0), (0, 0, 255))
+text_rect: Rect = text.get_rect()
+text_rect.bottomleft = (10, screen_resolution[1] - 20)
 while not done:
     screen.fill(noir)
     terrain.draw(screen)
@@ -54,8 +61,9 @@ while not done:
     forest.draw(screen)
     mineral.draw(screen)
     mineral2.draw(screen)
-    # tree.draw(screen)
     characters.actualize(screen, t)
+    screen.blit(text, text_rect)
+
     mouse_vector = Vector(*pygame.mouse.get_pos()) + window_pos
     scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
     # mouse_vector -= total_scroll_vector
@@ -120,6 +128,10 @@ while not done:
         done = True
 
     t = clock.get_time()
+    if t != 0:
+        fps_to_show.popleft()
+        fps_to_show.append(1000 / t)
+    text = font.render(f'{round(sum(fps_to_show) / len(fps_to_show),1)} FPS', True, (255, 255, 0), (0, 0, 0))
 
     pygame.display.flip()
 
