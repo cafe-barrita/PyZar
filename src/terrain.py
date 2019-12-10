@@ -74,6 +74,5 @@ class Terrain(Item):
 
     @kronos
     def screen_move(self, scroll_vector):
-        # FIXME hay que mover el sea_set
         self.window_pos -= scroll_vector
         self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
