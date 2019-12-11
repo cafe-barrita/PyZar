@@ -151,6 +151,8 @@ while not done:
     scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
+            if pygame.mouse.get_pressed()[0]:
+                scroll_vector = mini_map.click(Vector(*pygame.mouse.get_pos()))
             # if hasattr(event, 'button'):
             #     print(event.button)
             # print('mouse', pygame.mouse.get_pos())
@@ -171,7 +173,7 @@ while not done:
             if event.button == 1:
                 scroll_vector = mini_map.click(Vector(*pygame.mouse.get_pos()))
                 pressed_item = Interaction.get_hovered(mouse_vector, forest + obstacles)
-                print(mouse_vector)
+                # print(mouse_vector)
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
                 pressed_one = Interaction.mouse_characters(mouse_vector, characters)
