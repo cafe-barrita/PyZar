@@ -54,11 +54,13 @@ class Window:
 
 class MiniMap:
     def __init__(self, window: Window, map_res, terrain, stuff):
+        # FIXME esto no vale para mapas que no sean cuadrados
+        sides = Vector(150, 150)
         self.window = window
-        self.factor = 10
+        self.factor = map_res[0] / sides.x
         self.margin = 10
-        sides = Vector(*map_res) / self.factor
-        self.pos = Vector(self.margin, screen_resolution[1] - self.margin - sides.x)
+        # sides = Vector(*map_res) / self.factor
+        self.pos = Vector(self.margin, screen_resolution[1] - self.margin - sides.y)
         self.center = self.pos + window.res / (2 * self.factor)
         self.window_points = (
             self.pos,

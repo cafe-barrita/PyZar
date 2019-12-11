@@ -112,7 +112,8 @@ class Terrain(Item):
         return point.int() in self.sea_set
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, (0, 0, 200), self.big_map_isoline)
+        if self.big_map_isoline:
+            pygame.draw.polygon(screen, (0, 0, 200), self.big_map_isoline)
 
     def draw_for_minimap(self, screen):
         pygame.draw.polygon(screen, (0, 0, 200), self.mini_map_isoline)
