@@ -58,8 +58,8 @@ class RoundItem(Item, ABC):
     def is_point_inside(self, point):
         return abs(point - self._pos) <= self.radius
 
-    def screen_move(self, scroll_vector):
-        self._screen_pos += scroll_vector
+    def screen_move(self, window_pos):
+        self._screen_pos = self.pos - window_pos
 
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self._screen_pos.int(), 5, 0)
@@ -71,27 +71,26 @@ class SquareItem(Item, ABC):
 
     def __init__(self, pos: Vector, window_pos: Vector):
         super().__init__(pos, window_pos)
-        self.points = None
+        self._points = None
         self._screen_points = None
         self.segments = None
         self.x_bounds = None
         self.y_bounds = None
-        self.calc_pos()
+        self.calc_pos(window_pos)
 
-    def screen_move(self, scroll_vector):
-        self._screen_pos += scroll_vector
-        self._screen_points = [(Vector(*point) + scroll_vector).int() for point in self._screen_points]
+    def screen_move(self, window_pos):
+        self._screen_pos = self.pos - window_pos
+        self._screen_points = [(Vector(*point) - window_pos).int() for point in self._points]
 
-    def calc_pos(self):
-        screen_points = (
-            self._screen_pos + Vector(self.radius, self.radius), self._screen_pos + Vector(-self.radius, self.radius),
-            self._screen_pos + Vector(-self.radius, -self.radius),
-            self._screen_pos + Vector(self.radius, -self.radius),)
-        points = (self._pos + Vector(self.radius, self.radius), self._pos + Vector(-self.radius, self.radius),
-                  self._pos + Vector(-self.radius, -self.radius), self._pos + Vector(self.radius, -self.radius),)
-        self._screen_points = tuple(point.int() for point in screen_points)
-        xs = [int(point.x) for point in points]
-        ys = [int(point.y) for point in points]
+    def calc_pos(self, window_pos):
+        self._points = (
+            self._pos + Vector(self.radius, self.radius),
+            self._pos + Vector(-self.radius, self.radius),
+            self._pos + Vector(-self.radius, -self.radius),
+            self._pos + Vector(self.radius, -self.radius),)
+        self._screen_points = tuple((point - window_pos).int() for point in self._points)
+        xs = [int(point.x) for point in self._points]
+        ys = [int(point.y) for point in self._points]
         self.x_bounds = min(xs), max(xs)
         self.y_bounds = min(ys), max(ys)
 
@@ -158,7 +157,6 @@ class Castle(Building):
     radius = 30
 
     def __init__(self, pos: Vector, window_pos: Vector):
-
         super().__init__(pos, window_pos)
         self.color = 0, 100, 200
 

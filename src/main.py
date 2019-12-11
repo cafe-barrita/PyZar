@@ -42,12 +42,13 @@ class MiniMap:
         sides = Vector(*map_res) / self.factor
         self.pos = Vector(margin, screen_resolution[1] - margin - sides[1])
         self.window_points = (
-            self.pos + window.pos / self.factor,
-            self.pos + (window.pos + Vector(window.res.x, 0)) / self.factor,
-            self.pos + (window.pos + Vector(window.res.x, window.res.y)) / self.factor,
-            self.pos + (window.pos + Vector(0, window.res.y)) / self.factor,
+            self.pos,
+            self.pos + Vector(window.res.x, 0) / self.factor,
+            self.pos + Vector(window.res.x, window.res.y) / self.factor,
+            self.pos + Vector(0, window.res.y) / self.factor,
         )
-        self.window_tuples = tuple(p.int() for p in self.window_points)
+        # self.window_tuples = tuple(p.int() for p in self.window_points)
+        self.window_tuples = tuple((p + window.pos / self.factor).int() for p in self.window_points)
         self.points = (
             (margin - 1, window.res.y - margin + 1),
             (margin + sides.x + 1, window.res.y - margin + 1),
@@ -64,9 +65,8 @@ class MiniMap:
         pygame.draw.polygon(screen, (255, 255, 0), self.points, 3)
         pygame.draw.polygon(screen, (200, 255, 0), self.window_tuples, 2)
 
-    def screen_move(self, scroll_vector):
-        self.window_points = tuple((p - scroll_vector / self.factor) for p in self.window_points)
-        self.window_tuples = tuple(p.int() for p in self.window_points)
+    def screen_move(self, window_pos):
+        self.window_tuples = tuple((p + window_pos / self.factor).int() for p in self.window_points)
 
 
 def do_each_second():
@@ -119,7 +119,6 @@ while not done:
 
     mouse_vector = Vector(*pygame.mouse.get_pos()) + window.pos
     scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
-    # mouse_vector -= total_scroll_vector
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             # print('mouse', pygame.mouse.get_pos())
@@ -165,12 +164,12 @@ while not done:
     elif teclas[pygame.K_d]:
         scroll_vector = Vector(-1, 0)
     if scroll_vector and pygame.mouse.get_focused() and window.move(scroll_vector):
-        forest.screen_move(scroll_vector)
-        characters.screen_move(scroll_vector)
-        terrain.screen_move(scroll_vector)
-        mini_map.screen_move(scroll_vector)
+        forest.screen_move(window.pos)
+        characters.screen_move(window.pos)
+        terrain.screen_move(window.pos)
+        mini_map.screen_move(window.pos)
         for obstacle in obstacles:
-            obstacle.screen_move(scroll_vector)
+            obstacle.screen_move(window.pos)
 
     # if teclas[pygame.K_KP_MINUS]:
     #     ...

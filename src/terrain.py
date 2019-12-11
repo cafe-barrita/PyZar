@@ -118,6 +118,6 @@ class Terrain(Item):
         pygame.draw.polygon(screen, (0, 0, 200), self.mini_map_isoline)
 
     @kronos
-    def screen_move(self, scroll_vector):
-        self.window_pos -= scroll_vector
+    def screen_move(self, window_pos):
+        self.window_pos = window_pos
         self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
