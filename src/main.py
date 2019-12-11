@@ -9,7 +9,7 @@ from vector_2d import Vector
 
 from characters import Character, Characters
 from interactions import Interaction
-from items import Mineral, Castle, Forest, Borders, Tree
+from items import Mineral, Castle, Forest, Borders
 from terrain import Terrain
 
 EVERY_SECOND_EVENT = 31
@@ -32,6 +32,41 @@ class Window:
             self.__pos = pos
             return True
         return False
+
+
+class MiniMap:
+    def __init__(self, window, map_res, terrain, stuff):
+        self.window_size = window.res.x / map_res[0], window.res.y / map_res[1]
+        self.factor = 10
+        margin = 10
+        sides = Vector(*map_res) / self.factor
+        self.pos = Vector(margin, screen_resolution[1] - margin - sides[1])
+        self.window_points = (
+            self.pos + window.pos / self.factor,
+            self.pos + (window.pos + Vector(window.res.x, 0)) / self.factor,
+            self.pos + (window.pos + Vector(window.res.x, window.res.y)) / self.factor,
+            self.pos + (window.pos + Vector(0, window.res.y)) / self.factor,
+        )
+        self.window_tuples = tuple(p.int() for p in self.window_points)
+        self.points = (
+            (margin - 1, window.res.y - margin + 1),
+            (margin + sides.x + 1, window.res.y - margin + 1),
+            (margin + sides.x + 1, window.res.y - margin - sides.y - 1),
+            (margin - 1, window.res.y - margin - sides.y - 1),
+        )
+        self.terrain = terrain
+        terrain.set_minimap_data(self.pos, sides)
+        self.stuff = stuff
+
+    def draw(self, screen):
+        pygame.draw.polygon(screen, (0, 0, 0), self.points)
+        self.terrain.draw_for_minimap(screen)
+        pygame.draw.polygon(screen, (255, 255, 0), self.points, 3)
+        pygame.draw.polygon(screen, (200, 255, 0), self.window_tuples, 2)
+
+    def screen_move(self, scroll_vector):
+        self.window_points = tuple((p - scroll_vector / self.factor) for p in self.window_points)
+        self.window_tuples = tuple(p.int() for p in self.window_points)
 
 
 def do_each_second():
@@ -64,12 +99,13 @@ mineral2 = Mineral(Vector(500, 100), window.pos)
 obstacles = [castle, mineral, mineral2]
 forest = Forest(map_resolution, obstacles + [terrain], window.pos)
 characters = Characters(castle, forest, window.pos)
+mini_map = MiniMap(window, map_resolution, terrain, (castle, mineral, mineral2, characters))
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
 font = pygame.font.Font('freesansbold.ttf', 20)
-text = font.render('FPS', True, (255, 0, 0), (0, 0, 255))
+text = font.render('XX.X FPS', True, (255, 0, 0), (0, 0, 255))
 text_rect: Rect = text.get_rect()
-text_rect.bottomleft = (10, screen_resolution[1] - 20)
+text_rect.bottomright = (screen_resolution[0] - 10, screen_resolution[1] - 20)
 while not done:
     screen.fill(noir)
     terrain.draw(screen)
@@ -78,6 +114,7 @@ while not done:
     mineral.draw(screen)
     mineral2.draw(screen)
     characters.actualize(screen, t)
+    mini_map.draw(screen)
     screen.blit(text, text_rect)
 
     mouse_vector = Vector(*pygame.mouse.get_pos()) + window.pos
@@ -131,6 +168,7 @@ while not done:
         forest.screen_move(scroll_vector)
         characters.screen_move(scroll_vector)
         terrain.screen_move(scroll_vector)
+        mini_map.screen_move(scroll_vector)
         for obstacle in obstacles:
             obstacle.screen_move(scroll_vector)
 
@@ -145,7 +183,7 @@ while not done:
     if t != 0:
         fps_to_show.popleft()
         fps_to_show.append(1000 / t)
-    text = font.render(f'{round(sum(fps_to_show) / len(fps_to_show),1)} FPS', True, (255, 255, 0), (0, 0, 0))
+    text = font.render(f'{round(sum(fps_to_show) / len(fps_to_show), 1)} FPS', True, (255, 255, 0), (0, 0, 0))
 
     pygame.display.flip()
 

@@ -90,7 +90,6 @@ class SquareItem(Item, ABC):
         points = (self._pos + Vector(self.radius, self.radius), self._pos + Vector(-self.radius, self.radius),
                   self._pos + Vector(-self.radius, -self.radius), self._pos + Vector(self.radius, -self.radius),)
         self._screen_points = tuple(point.int() for point in screen_points)
-        # self.segments = tuple((points[i - 1], points[i]) for i in range(len(points) - 1, -1, -1))
         xs = [int(point.x) for point in points]
         ys = [int(point.y) for point in points]
         self.x_bounds = min(xs), max(xs)
