@@ -29,7 +29,7 @@ class Terrain(Item):
         self.sea_set = set()
         self.calc_noise()
         # TODO meter en un diccionario
-        self.isolines = []
+        self.isoline = []
         self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
 
     @kronos
@@ -47,7 +47,6 @@ class Terrain(Item):
                     self.terrain_set.add((x, y))
 
     def calc_contours(self, v1, v2):
-        # FIXME this way shadows islands
         v1 /= self.tile
         v2 /= self.tile
         print(v1, v2)
@@ -58,19 +57,23 @@ class Terrain(Item):
         noise = np.insert(noise, 0, element, axis=1)
         noise = np.insert(noise, len(noise[1]), element, axis=1)
 
-        self.isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
-                         measure.find_contours(noise, self.sea_threshold, fully_connected='low',
-                                               positive_orientation='low')]
-        # print(self.isolines[0][0])
+        isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
+                    measure.find_contours(noise, self.sea_threshold, fully_connected='low',
+                                          positive_orientation='low')]
+
+        # FIXME this allow the islands, but let spurius lines in between
+        self.isoline = isolines[0]
+        last_element_from_first_line = isolines[0][-1]
+        for line in isolines[1:]:
+            self.isoline += line
+            self.isoline.append(last_element_from_first_line)
 
     def is_point_inside(self, point):
         point = point / self.tile
         return point.int() in self.sea_set
 
     def draw(self, screen):
-        for isoline in self.isolines:
-            if len(isoline) > 2:
-                pygame.draw.polygon(screen, (0, 0, 200), isoline)
+        pygame.draw.polygon(screen, (0, 0, 50), self.isoline)
 
     @kronos
     def screen_move(self, scroll_vector):
