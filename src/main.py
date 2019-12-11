@@ -25,6 +25,10 @@ class Window:
     def pos(self):
         return self.__pos
 
+    @pos.setter
+    def pos(self, value):
+        self.__pos = value
+
     def move(self, scroll_vector: Vector):
         pos = self.__pos - scroll_vector
         bottom_right = pos + self.res
@@ -38,26 +42,37 @@ class MiniMap:
     def __init__(self, window, map_res, terrain, stuff):
         self.window_size = window.res.x / map_res[0], window.res.y / map_res[1]
         self.factor = 10
-        margin = 10
+        self.margin = 10
         sides = Vector(*map_res) / self.factor
-        self.pos = Vector(margin, screen_resolution[1] - margin - sides[1])
+        self.pos = Vector(self.margin, screen_resolution[1] - self.margin - sides[1])
+        self.center = self.pos - sides / 2
         self.window_points = (
             self.pos,
             self.pos + Vector(window.res.x, 0) / self.factor,
-            self.pos + Vector(window.res.x, window.res.y) / self.factor,
+            self.pos + window.res / self.factor,
             self.pos + Vector(0, window.res.y) / self.factor,
         )
-        # self.window_tuples = tuple(p.int() for p in self.window_points)
         self.window_tuples = tuple((p + window.pos / self.factor).int() for p in self.window_points)
         self.points = (
-            (margin - 1, window.res.y - margin + 1),
-            (margin + sides.x + 1, window.res.y - margin + 1),
-            (margin + sides.x + 1, window.res.y - margin - sides.y - 1),
-            (margin - 1, window.res.y - margin - sides.y - 1),
+            (self.margin - 1, window.res.y - self.margin + 1),
+            (self.margin + sides.x + 1, window.res.y - self.margin + 1),
+            (self.margin + sides.x + 1, window.res.y - self.margin - sides.y - 1),
+            (self.margin - 1, window.res.y - self.margin - sides.y - 1),
         )
+        xs = [int(point[0]) for point in self.points]
+        ys = [int(point[1]) for point in self.points]
+        self.x_bounds = min(xs), max(xs)
+        self.y_bounds = min(ys), max(ys)
         self.terrain = terrain
         terrain.set_minimap_data(self.pos, sides)
         self.stuff = stuff
+
+    def click(self, point: Vector):
+        if self.x_bounds[1] >= point.x >= self.x_bounds[0] and self.y_bounds[1] >= point.y >= self.y_bounds[0]:
+            point = (point - self.pos) * self.factor
+            # print('CLICK', point)
+            self.screen_move(point)
+            return point
 
     def draw(self, screen):
         pygame.draw.polygon(screen, (0, 0, 0), self.points)
@@ -137,6 +152,10 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
+                point = mini_map.click(Vector(*pygame.mouse.get_pos()))
+                if point:
+                    window.pos = point
+                    scroll_vector = Vector(0, 0)
                 pressed_item = Interaction.get_hovered(mouse_vector, forest + obstacles)
                 print(mouse_vector)
                 if pressed_item and pressed_one:
