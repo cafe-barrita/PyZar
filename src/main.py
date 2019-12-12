@@ -37,15 +37,15 @@ fps = 60
 fps_to_show = collections.deque([60] * 60)
 
 borders = Borders(screen_resolution)
-window = Window(pos=(400, 300), res=screen_resolution, map_res=map_resolution)
-terrain = Terrain(screen_resolution, window.pos, map_resolution)
-castle = Castle(Vector(400, 300), window.pos)
+terrain = Terrain(screen_resolution, map_resolution)
+castle = Castle(Vector(400, 300))
 pressed_one: Optional[Character] = None
-mineral = Mineral(Vector(300, 100), window.pos)
-mineral2 = Mineral(Vector(500, 100), window.pos)
+mineral = Mineral(Vector(300, 100))
+mineral2 = Mineral(Vector(500, 100))
 obstacles = [castle, mineral, mineral2]
-forest = Forest(map_resolution, obstacles + [terrain], window.pos)
-characters = Characters(castle, forest, window.pos)
+forest = Forest(map_resolution, obstacles + [terrain])
+characters = Characters(castle, forest)
+window = Window(center=castle.pos, res=screen_resolution, map_res=map_resolution)
 mini_map = MiniMap(window, map_resolution, terrain, (castle, mineral, mineral2, characters))
 
 pygame.time.set_timer(EVERY_SECOND_EVENT, 200)
@@ -53,17 +53,16 @@ font = pygame.font.Font('freesansbold.ttf', 20)
 text = font.render('XX.X FPS', True, (255, 0, 0), (0, 0, 255))
 text_rect: Rect = text.get_rect()
 text_rect.bottomright = (screen_resolution[0] - 10, screen_resolution[1] - 20)
-while not done:
-    screen.fill(noir)
-    terrain.draw(screen)
-    castle.draw(screen)
-    forest.draw(screen)
-    mineral.draw(screen)
-    mineral2.draw(screen)
-    characters.actualize(screen, t)
-    mini_map.draw(screen)
-    screen.blit(text, text_rect)
 
+
+forest.screen_move(window.pos)
+characters.screen_move(window.pos)
+terrain.screen_move(window.pos)
+mini_map.screen_move(window.pos)
+for obstacle in obstacles:
+    obstacle.screen_move(window.pos)
+
+while not done:
     mouse_vector = Vector(*pygame.mouse.get_pos()) + window.pos
     scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
     for event in pygame.event.get():
@@ -136,6 +135,15 @@ while not done:
         fps_to_show.append(1000 / t)
     text = font.render(f'{round(sum(fps_to_show) / len(fps_to_show), 1)} FPS', True, (255, 255, 0), (0, 0, 0))
 
+    screen.fill(noir)
+    terrain.draw(screen)
+    castle.draw(screen)
+    forest.draw(screen)
+    mineral.draw(screen)
+    mineral2.draw(screen)
+    characters.actualize(screen, t)
+    mini_map.draw(screen)
+    screen.blit(text, text_rect)
     pygame.display.flip()
 
     clock.tick(fps)

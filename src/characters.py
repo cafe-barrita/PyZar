@@ -16,8 +16,8 @@ class Character(RoundItem, ABC):
     radius = 5
     sight_radius = 50
 
-    def __init__(self, pos: Vector, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
         self._destinations: Deque[Vector, ...] = deque([pos])
         self._is_pressed = False
         self.obstacle = None
@@ -92,8 +92,8 @@ class Farmer(Character):
     CHOPPER = 'chopper'
     MINER = 'miner'
 
-    def __init__(self, pos: Vector, home: Building, forest: Forest, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    def __init__(self, pos: Vector, home: Building, forest: Forest):
+        super().__init__(pos)
         self.work_cycle = [self.get_back_from_work, self.work, self.go_to_work]
         self.__work_cycle_index = -1
         self.job = None
@@ -172,8 +172,7 @@ class Farmer(Character):
 
 
 class Characters(Collective):
-    def __init__(self, castle: Castle, forest: Forest, window_pos: Vector):
+    def __init__(self, castle: Castle, forest: Forest):
         farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
-                          home=castle,
-                          forest=forest, window_pos=window_pos) for _ in range(3)]
+                          home=castle, forest=forest) for _ in range(3)]
         super().__init__(farmers)

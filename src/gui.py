@@ -3,10 +3,11 @@ from vector_2d import Vector
 
 
 class Window:
-    def __init__(self, pos, res, map_res):
-        self.__pos = Vector(*pos)
+    def __init__(self, center, res, map_res):
+        self.__pos = None
         self.res = Vector(*res)
         self.__map_res = Vector(*map_res)
+        self.pos = Vector(*center) - Vector(*res) / 2
 
     @property
     def pos(self):

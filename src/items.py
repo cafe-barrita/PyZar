@@ -23,10 +23,8 @@ class Borders:
 
 
 class Item:
-    def __init__(self, pos, window_pos: Vector):
+    def __init__(self, pos):
         self._pos = pos
-        self._screen_pos = pos - window_pos
-        # print(self.__class__.__name__, self._screen_pos)
 
     @abstractmethod
     def is_instantiable(self):
@@ -69,26 +67,26 @@ class SquareItem(Item, ABC):
     radius = None
     color = None
 
-    def __init__(self, pos: Vector, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
         self._points = None
         self._screen_points = None
         self.segments = None
         self.x_bounds = None
         self.y_bounds = None
-        self.calc_pos(window_pos)
+        self.calc_pos()
 
     def screen_move(self, window_pos):
-        self._screen_pos = self.pos - window_pos
+        # self._screen_pos = self.pos - window_pos
         self._screen_points = [(Vector(*point) - window_pos).int() for point in self._points]
 
-    def calc_pos(self, window_pos):
+    def calc_pos(self):
         self._points = (
             self._pos + Vector(self.radius, self.radius),
             self._pos + Vector(-self.radius, self.radius),
             self._pos + Vector(-self.radius, -self.radius),
             self._pos + Vector(self.radius, -self.radius),)
-        self._screen_points = tuple((point - window_pos).int() for point in self._points)
+        # self._screen_points = tuple((point - window_pos).int() for point in self._points)
         xs = [int(point.x) for point in self._points]
         ys = [int(point.y) for point in self._points]
         self.x_bounds = min(xs), max(xs)
@@ -115,10 +113,10 @@ class Mineral(Resource, SquareItem):
     color = 255, 150, 100
     radius = 20
 
-    def __init__(self, pos: Vector, window_pos: Vector):
+    def __init__(self, pos: Vector):
         self.radius = Mineral.radius
         Resource.__init__(self)
-        SquareItem.__init__(self, pos, window_pos)
+        SquareItem.__init__(self, pos)
         self.load = 8000
 
     def is_instantiable(self):
@@ -129,8 +127,8 @@ class Tree(Resource, RoundItem):
     color = 100, 200, 10
     radius = 5
 
-    def __init__(self, pos: Vector, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
         self._pos = pos
         # TODO self.load = 100
         self.load = 30
@@ -156,8 +154,8 @@ class Building(SquareItem, ABC):
 class Castle(Building):
     radius = 30
 
-    def __init__(self, pos: Vector, window_pos: Vector):
-        super().__init__(pos, window_pos)
+    def __init__(self, pos: Vector):
+        super().__init__(pos)
         self.color = 0, 100, 200
 
     def is_instantiable(self):
@@ -194,14 +192,14 @@ class Collective(ABC):
 
 
 class Forest(Collective):
-    def __init__(self, map_resolution, obstacles, window_pos: Vector):
+    def __init__(self, map_resolution, obstacles):
         tree_set = set()
         for _ in range(1000):
             x = random.randrange(map_resolution[0])
             y = random.randrange(map_resolution[1])
             inside = any([obstacle.is_point_inside(Vector(x, y)) for obstacle in obstacles])
             if not inside:
-                tree_set.add(Tree(Vector(x, y), window_pos))
+                tree_set.add(Tree(Vector(x, y)))
         super().__init__(tree_set)
 
     def discard(self, element):

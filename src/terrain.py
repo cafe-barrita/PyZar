@@ -14,12 +14,12 @@ class Terrain(Item):
         return True
 
     @kronos
-    def __init__(self, visible_res, window_pos, res, pos=Vector(0, 0)):
+    def __init__(self, visible_res, res, pos=Vector(0, 0)):
         # FIXME el terreno debe ser mucho más grande que el mapa visible!!!!!
-        super().__init__(pos, window_pos)
+        super().__init__(pos)
         self.res = Vector(*res)
         self.tile = 20
-        self.window_pos = Vector(*window_pos)
+        self.window_pos = None
         self.visible_res = Vector(*visible_res)
         self.sea_threshold = None
         self.perlin = PerlinNoiseFactory(2, 4, tile=(0, 3))
@@ -33,7 +33,7 @@ class Terrain(Item):
         # FIXME esto no debería estar hardcodeado
         self.mini_map_pos = None
         self.mini_map_sides = None
-        self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
+        # self.calc_contours(self.window_pos, self.window_pos + self.visible_res)
 
     def set_minimap_data(self, mm_pos, sides):
         self.mini_map_pos = mm_pos
@@ -81,17 +81,12 @@ class Terrain(Item):
     def calc_contours(self, v1, v2):
         v1 /= self.tile
         v2 /= self.tile
-        # print(v1, v2)
         element = self.noise.min()
         noise = self.noise[int(v1.x):int(v2.x + 1), int(v1.y): int(v2.y + 1)]
         noise = np.insert(noise, 0, element, axis=0)
         noise = np.insert(noise, len(noise), element, axis=0)
         noise = np.insert(noise, 0, element, axis=1)
         noise = np.insert(noise, len(noise[1]), element, axis=1)
-
-        # isolines = [[(int(self.tile * (x - 1)), int(self.tile * (y - 1))) for x, y in list(contour)] for contour in
-        #             measure.find_contours(noise, self.sea_threshold, fully_connected='low',
-        #                                   positive_orientation='low')]
 
         isolines = [[(x - 1, y - 1) for x, y in list(contour)] for contour in
                     measure.find_contours(noise, self.sea_threshold, fully_connected='low',
