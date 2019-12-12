@@ -2,7 +2,7 @@ from typing import Set, Optional, List
 
 from vector_2d import Vector, VectorPolar
 
-from characters import Character
+from characters import Character, Characters
 from items import Item
 
 
@@ -10,7 +10,7 @@ class Interaction:
     last_pressed: Optional[Character] = None
 
     @staticmethod
-    def mouse_characters(mouse: Vector, characters: List[Character]) -> Character:
+    def mouse_characters(mouse: Vector, characters: Characters) -> Character:
         if Interaction.last_pressed:
             Interaction.last_pressed.set_pressed(False)
         # TODO order the character list positionaly to improve check

@@ -11,6 +11,7 @@ from characters import Character, Characters
 from gui import Window, MiniMap
 from interactions import Interaction
 from items import Mineral, Castle, Forest, Borders
+from placer import Placer
 from terrain import Terrain
 
 EVERY_SECOND_EVENT = 31
@@ -35,11 +36,12 @@ t = clock.get_time()
 done = False
 noir = 0, 0, 0
 fps = 200
-fps_to_show = collections.deque([60] * 60)
+fps_to_show = collections.deque([fps] * fps)
 
 borders = Borders(screen_resolution)
 terrain = Terrain(screen_resolution, map_resolution)
-castle = Castle(Vector(400, 300))
+placer = Placer(terrain)
+castle = Castle(placer.place_castle())
 pressed_one: Optional[Character] = None
 mineral = Mineral(Vector(300, 100))
 mineral2 = Mineral(Vector(500, 100))
