@@ -19,7 +19,7 @@ clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
-fps = 60
+fps = 200
 terrain = Terrain(screen_resolution, Vector(), map_resolution)
 draw_contours = True
 
