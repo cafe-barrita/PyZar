@@ -4,12 +4,7 @@ import random
 from vector_2d import Vector, VectorPolar
 
 from terrain import Terrain
-
-
-def frange(init, stop, step):
-    while init < stop:
-        yield init
-        init += step
+from tools import frange
 
 
 class Placer:

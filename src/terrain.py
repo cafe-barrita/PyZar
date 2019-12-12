@@ -6,7 +6,7 @@ from perlin import PerlinNoiseFactory
 
 import numpy as np
 from skimage import measure
-from decorators import kronos
+from tools import kronos
 
 
 class Terrain(Item):
@@ -108,7 +108,7 @@ class Terrain(Item):
 
     def draw(self, screen):
         if self.big_map_isoline:
-            pygame.draw.polygon(screen, (0, 0, 200), self.big_map_isoline)
+            pygame.draw.polygon(screen, (0, 0, 50), self.big_map_isoline)
 
     def draw_for_minimap(self, screen):
         pygame.draw.polygon(screen, (0, 0, 200), self.mini_map_isoline)

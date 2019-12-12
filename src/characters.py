@@ -8,6 +8,8 @@ from vector_2d import Vector, VectorPolar
 
 import cursors
 from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle, Collective
+from terrain import Terrain
+from tools import frange
 
 
 class Character(RoundItem, ABC):
@@ -16,9 +18,11 @@ class Character(RoundItem, ABC):
     radius = 5
     sight_radius = 50
 
-    def __init__(self, pos: Vector):
+    def __init__(self, pos: Vector, terrain: Terrain):
         super().__init__(pos)
+        self.terrain = terrain
         self._destinations: Deque[Vector, ...] = deque([pos])
+        self.__intermediate_destinations = []
         self._is_pressed = False
         self.obstacle = None
 
@@ -35,9 +39,18 @@ class Character(RoundItem, ABC):
         if self._destinations:
             return self._destinations[-1]
 
+    @staticmethod
+    def get_new_unit_vectors(pos):
+        angle_step = 0.7854  # pi/4
+        return (pos + VectorPolar(1, angle).to_cartesian() for angle in frange(0, 6.29, angle_step))
+
     @destination.setter
     def destination(self, value):
-        self._destinations.append(value)
+        if value is None:
+            if self._destinations:
+                self._destinations.pop()
+        else:
+            self._destinations.append(value)
 
     def append_left_destination(self, value):
         self._destinations.appendleft(value)
@@ -50,12 +63,14 @@ class Character(RoundItem, ABC):
                     self._destinations.pop()
                     return True
                 else:
-                    self._pos += self.director_vector.unit() * self.vel_mod * t
-                    self._screen_pos += self.director_vector.unit() * self.vel_mod * t
+                    movement = self.director_vector.unit() * self.vel_mod * t
+                    self._pos += movement
+                    self._screen_pos += movement
                     return False
             elif abs(self.director_vector) > self.radius:
-                self._pos += self.director_vector.unit() * self.vel_mod * t
-                self._screen_pos += self.director_vector.unit() * self.vel_mod * t
+                movement = self.director_vector.unit() * self.vel_mod * t
+                self._pos += movement
+                self._screen_pos += movement
                 return False
             else:
                 self._destinations.pop()
@@ -92,8 +107,8 @@ class Farmer(Character):
     CHOPPER = 'chopper'
     MINER = 'miner'
 
-    def __init__(self, pos: Vector, home: Building, forest: Forest):
-        super().__init__(pos)
+    def __init__(self, pos: Vector, home: Building, forest: Forest, terrain:Terrain):
+        super().__init__(pos, terrain)
         self.work_cycle = [self.get_back_from_work, self.work, self.go_to_work]
         self.__work_cycle_index = -1
         self.job = None
@@ -119,7 +134,7 @@ class Farmer(Character):
         # if abs(self.pos - self.home.pos) <= self.radius + self.home.radius:
         if self.home.is_point_inside(self._pos + self.director_vector.unit() * self.radius * 2):
             self.load = 0
-            self._destinations.pop()
+            self.destination = None
             self.destination = self.job.pos
             self.work_cycle_index -= 1
 
@@ -132,8 +147,7 @@ class Farmer(Character):
                 if isinstance(self.job, Tree):
                     self.forest.discard(self.job)
                 self.job = None
-                if self.destination:
-                    self._destinations.pop()
+            self.destination = None
             self.destination = self.home.pos
             self.work_cycle_index -= 1
 
@@ -141,7 +155,7 @@ class Farmer(Character):
         self.move(t)
         if abs(self._pos - self.job.pos) <= self.radius + self.job.radius + 2:
             self.work_cycle_index -= 1
-            self._destinations.pop()
+            self.destination = None
 
     def set_job(self, item: Union[Mineral, Tree]):
         self.job = item
@@ -172,7 +186,7 @@ class Farmer(Character):
 
 
 class Characters(Collective):
-    def __init__(self, castle: Castle, forest: Forest):
+    def __init__(self, castle: Castle, forest: Forest, terrain:Terrain):
         farmers = [Farmer((castle.pos.to_polar() + VectorPolar(50, random.randrange(628) // 100)).to_cartesian(),
-                          home=castle, forest=forest) for _ in range(3)]
+                          home=castle, forest=forest, terrain=terrain) for _ in range(3)]
         super().__init__(farmers)

@@ -18,7 +18,7 @@ if sys.platform == 'win32' or sys.platform == 'win64':
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 pygame.init()
-screen_resolution = 1000, 1000
+screen_resolution = 500, 500
 side = 2e3
 map_resolution = int(side), int(side)
 pygame.display.set_caption('PyZar')
@@ -34,7 +34,7 @@ borders = Borders(screen_resolution)
 terrain = Terrain(screen_resolution, map_resolution)
 placer = Placer(terrain)
 castle = Castle(placer.place_castle())
-characters = Characters(castle, None)
+characters = Characters(castle, None, terrain)
 window = Window(center=castle.pos, res=screen_resolution, map_res=map_resolution)
 mini_map = MiniMap(window, map_resolution, terrain, ())
 

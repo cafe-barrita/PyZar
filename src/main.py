@@ -47,7 +47,7 @@ mineral = Mineral(Vector(300, 100))
 mineral2 = Mineral(Vector(500, 100))
 obstacles = [castle, mineral, mineral2]
 forest = Forest(map_resolution, obstacles + [terrain])
-characters = Characters(castle, forest)
+characters = Characters(castle, forest, terrain)
 window = Window(center=castle.pos, res=screen_resolution, map_res=map_resolution)
 mini_map = MiniMap(window, map_resolution, terrain, (castle, mineral, mineral2, characters))
 
