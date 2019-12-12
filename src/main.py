@@ -33,7 +33,7 @@ clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
-fps = 60
+fps = 200
 fps_to_show = collections.deque([60] * 60)
 
 borders = Borders(screen_resolution)
@@ -54,7 +54,7 @@ text = font.render('XX.X FPS', True, (255, 0, 0), (0, 0, 255))
 text_rect: Rect = text.get_rect()
 text_rect.bottomright = (screen_resolution[0] - 10, screen_resolution[1] - 20)
 
-
+# A function would look prettier but it is much slower
 forest.screen_move(window.pos)
 characters.screen_move(window.pos)
 terrain.screen_move(window.pos)
@@ -63,22 +63,15 @@ for obstacle in obstacles:
     obstacle.screen_move(window.pos)
 
 while not done:
-    mouse_vector = Vector(*pygame.mouse.get_pos()) + window.pos
-    scroll_vector = borders.get_hovered(Vector(*pygame.mouse.get_pos()))
+    mouse = Vector(*pygame.mouse.get_pos())
+    mouse_in_map = mouse + window.pos
+    scroll_vector = borders.get_hovered(mouse)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEMOTION:
             if pygame.mouse.get_pressed()[0]:
-                scroll_vector = mini_map.click(Vector(*pygame.mouse.get_pos()))
-            # if hasattr(event, 'button'):
-            #     print(event.button)
-            # print('mouse', pygame.mouse.get_pos())
-            # print('mouse on map', mouse_vector)
-            # print('window', window.pos)
-            # print()
-            # mouse_peq = mouse_vector / terrain.tile
-            # print(terrain.sea_threshold, terrain.noise[int(mouse_peq[0]), int(mouse_peq[1])])
+                scroll_vector = mini_map.click(mouse)
             if pressed_one:
-                hovered = Interaction.get_hovered(mouse_vector, forest + obstacles)
+                hovered = Interaction.get_hovered(mouse_in_map, forest + obstacles)
                 if hovered:
                     pygame.mouse.set_cursor(*pressed_one.get_cursor(hovered))
                 else:
@@ -87,18 +80,13 @@ while not done:
                 pygame.mouse.set_cursor(*pygame.cursors.arrow)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                scroll_vector = mini_map.click(Vector(*pygame.mouse.get_pos()))
-                pressed_item = Interaction.get_hovered(mouse_vector, forest + obstacles)
-                # print(mouse_vector)
+                scroll_vector = mini_map.click(mouse)
+                pressed_item = Interaction.get_hovered(mouse_in_map, forest + obstacles)
                 if pressed_item and pressed_one:
                     pressed_one.set_job(pressed_item)
-                pressed_one = Interaction.mouse_characters(mouse_vector, characters)
+                pressed_one = Interaction.mouse_characters(mouse_in_map, characters)
             elif event.button == 3 and pressed_one:
-                pressed_one.append_left_destination(mouse_vector)
-            # elif event.button == 4:
-            #     ...
-            # elif event.button == 5:
-            #     ...
+                pressed_one.append_left_destination(mouse_in_map)
         elif event.type == EVERY_SECOND_EVENT:
             do_each_second()
 
@@ -115,6 +103,7 @@ while not done:
     elif teclas[pygame.K_d]:
         scroll_vector = Vector(-1, 0)
     if scroll_vector and pygame.mouse.get_focused() and window.move(scroll_vector):
+        # A function would look prettier but it is much slower
         forest.screen_move(window.pos)
         characters.screen_move(window.pos)
         terrain.screen_move(window.pos)
@@ -122,10 +111,6 @@ while not done:
         for obstacle in obstacles:
             obstacle.screen_move(window.pos)
 
-    # if teclas[pygame.K_KP_MINUS]:
-    #     ...
-
-    # para sair
     if teclas[pygame.K_ESCAPE]:
         done = True
 
