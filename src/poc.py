@@ -30,10 +30,12 @@ noir = 0, 0, 0
 fps = 200
 fps_to_show = collections.deque([fps] * fps)
 
+borders = Borders(screen_resolution)
 terrain = Terrain(screen_resolution, map_resolution)
 placer = Placer(terrain)
-placer.place_castle()
-window = Window(center=Vector(0, 0), res=screen_resolution, map_res=map_resolution)
+castle = Castle(placer.place_castle())
+characters = Characters(castle, None)
+window = Window(center=castle.pos, res=screen_resolution, map_res=map_resolution)
 mini_map = MiniMap(window, map_resolution, terrain, ())
 
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -41,11 +43,7 @@ text = font.render('XX.X FPS', True, (255, 0, 0), (0, 0, 255))
 text_rect: Rect = text.get_rect()
 text_rect.bottomright = (screen_resolution[0] - 10, screen_resolution[1] - 20)
 
-# A function would look prettier but it is much slower
-borders = Borders(screen_resolution)
-terrain.screen_move(window.pos)
-castle = Castle(Vector(400, 300))
-characters = Characters(castle, None)
+
 mini_map.screen_move(window.pos)
 pressed_one: Optional[Character] = None
 
@@ -114,7 +112,6 @@ while not done:
     castle.draw(screen)
     characters.actualize(screen, t)
     mini_map.draw(screen)
-    placer.draw(screen)
     screen.blit(text, text_rect)
     pygame.display.flip()
 
