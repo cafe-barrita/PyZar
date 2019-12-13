@@ -127,12 +127,12 @@ class Character(RoundItem, ABC):
                 # adjacents = self.get_adjacents(node)
                 for adjacent, step_weight in self.get_adjacents(node):
                     adjacent_weight = weight + step_weight
-                    sdjacent_path = path + [node]
+                    adjacent_path = path + [node]
                     if adjacent in self.dijkstra_nodes:
                         if self.dijkstra_nodes[adjacent][0] > adjacent_weight:
-                            self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+                            self.dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
                     else:
-                        self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+                        self.dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
 
         return [destination * self.terrain.tile] + [point * self.terrain.tile for point in reversed(self.dijkstra_nodes[destination][1])]
 
