@@ -9,18 +9,22 @@ class Path:
     def __init__(self, res):
         self.points = []
         self.show_points = []
-        self.tile = 10
-        self.sea_set = set()
-        self.show_sea = [10 * point for point in self.sea_set]
+        self.tile = 20
+        self.sea_set = {(x, 12) for x in range(5, 25)}
+        self.sea_set.update({(12, y) for y in range(5, 25)})
+        self.show_sea = [(self.tile * x, self.tile * y) for x, y in self.sea_set]
         self.intermediate_points = [(Vector(), 1)]
 
     def draw(self, screen):
+        for point in self.show_sea:
+            pygame.draw.circle(screen, (0, 0, 255), point, 4)
+
         max_weight = max(self.intermediate_points, key=lambda tup: tup[1])[1]
         for point, weight in self.intermediate_points:
             pygame.draw.circle(screen, (weight * 255 / max_weight, 0, 0), point.int(), 3)
 
         for point in self.show_points:
-            pygame.draw.circle(screen, (0, 255, 0), point.int(), 3)
+            pygame.draw.circle(screen, (0, 255, 0), point.int(), 2)
 
     def get_dijkstra(self, source: Vector, destination: Vector):
         pos = (source / self.tile).int_vector()
@@ -44,9 +48,9 @@ class Path:
         # await asyncio.sleep(0.0001)
 
         self.points = [destination] + [point for point in reversed(dijkstra_nodes[destination][1])]
-        self.show_points = [10 * point for point in self.points]
-        print(dijkstra_nodes[destination][1])
-        print(self.show_points)
+        self.show_points = [self.tile * point for point in self.points]
+        # print(dijkstra_nodes[destination][1])
+        # print(self.show_points)
         # return [destination * self.tile] + [point * self.tile for point in reversed(dijkstra_nodes[destination][1])]
 
     def get_adjacents(self, node):

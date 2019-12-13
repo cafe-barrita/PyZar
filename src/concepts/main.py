@@ -42,6 +42,7 @@ while not done:
                 calculated = False
             elif event.button == 3 and source:
                 destination = mouse
+                calculated = False
 
         elif event.type == pygame.QUIT:
             done = True
@@ -64,7 +65,6 @@ while not done:
         fps_to_show.popleft()
         fps_to_show.append(1000 / t)
     text = font.render(f'{round(sum(fps_to_show) / len(fps_to_show), 1)} FPS', True, (255, 255, 0), (0, 0, 0))
-
 
     path.draw(screen)
     screen.blit(text, text_rect)
