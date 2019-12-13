@@ -27,7 +27,7 @@ clock = pygame.time.Clock()
 t = clock.get_time()
 done = False
 noir = 0, 0, 0
-fps = 200
+fps = 5
 fps_to_show = collections.deque([fps] * fps)
 
 borders = Borders(screen_resolution)

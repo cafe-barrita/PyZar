@@ -19,7 +19,7 @@ EVERY_SECOND_EVENT = 31
 
 def do_each_second():
     Interaction.check_obstacles(characters, obstacles + characters)
-    Interaction.check_sea(characters, terrain)
+    # Interaction.check_sea(characters, terrain)
 
 
 if sys.platform == 'win32' or sys.platform == 'win64':
@@ -90,6 +90,7 @@ while not done:
                 pressed_one = Interaction.mouse_characters(mouse_in_map, characters)
             elif event.button == 3 and pressed_one:
                 pressed_one.append_left_destination(mouse_in_map)
+                characters.screen_move(window.pos)
         elif event.type == EVERY_SECOND_EVENT:
             do_each_second()
 

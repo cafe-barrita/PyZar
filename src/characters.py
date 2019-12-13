@@ -1,4 +1,5 @@
 import random
+import time
 from abc import ABC
 from collections import deque
 from typing import Union, Deque, List
@@ -25,6 +26,8 @@ class Character(RoundItem, ABC):
         self.__intermediate_destinations = []
         self._is_pressed = False
         self.obstacle = None
+        self.dijkstra_nodes = {}
+        self._dest_screen_pos = []
 
     @property
     def director_vector(self):
@@ -34,7 +37,7 @@ class Character(RoundItem, ABC):
         else:
             return Vector()
 
-    @ property
+    @property
     def intermediate_destinations(self):
         raise NotImplementedError
 
@@ -49,6 +52,8 @@ class Character(RoundItem, ABC):
                 return None
             destination = self.__destinations.pop()
             self.__intermediate_destinations += self.get_dijkstra(destination)
+            self.dijkstra_nodes = {}
+            # print(self.__intermediate_destinations)
         return self.__intermediate_destinations[-1]
 
     @destination.setter
@@ -78,13 +83,24 @@ class Character(RoundItem, ABC):
                 self.destinations_pop()
                 return True
 
+    def screen_move(self, window_pos):
+        super().screen_move(window_pos)
+        self._dest_screen_pos = [dest - window_pos for dest in self.__intermediate_destinations]
+
     def draw(self, surface: pygame.Surface):
         pygame.draw.circle(surface, self.color, self._screen_pos.int(), self.radius, 0)
         if self._is_pressed:
             pygame.draw.circle(surface, (0, 255, 0), self._screen_pos.int(), self.radius, 1)
 
+        # for point, value in self.dijkstra_nodes.items():
+        #     (value[0] / 30) * 255
+        #     pygame.draw.circle(surface, ((value[0] / 999) * 200, 0, 0), (self._screen_pos + point).int(), 3)
+
         # for dest in self._destinations:
         #     pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
+        for dest in self._dest_screen_pos:
+            print('DEST:', dest)
+            pygame.draw.circle(surface, (255, 0, 0), dest.int(), 3)
 
     def actualize(self, surface: pygame.Surface, t: int):
         self.move(t)
@@ -97,7 +113,61 @@ class Character(RoundItem, ABC):
         return self.cursors.get(item.__class__.__name__, pygame.cursors.arrow)
 
     def get_dijkstra(self, destination: Vector) -> List[Vector]:
-        return [destination]
+        pos = (self._pos / self.terrain.tile).int_vector()
+        # print('POS:', self._pos)
+        destination = (destination / self.terrain.tile).int_vector()
+        if pos not in self.dijkstra_nodes:
+            self.dijkstra_nodes[pos] = (0, [])
+        while destination not in self.dijkstra_nodes:
+            # print(self.dijkstra_nodes)
+            # time.sleep(1)
+            dijkstra_nodes_copy = self.dijkstra_nodes.copy()
+            for node, value in dijkstra_nodes_copy.items():
+                weight, path = value
+                # adjacents = self.get_adjacents(node)
+                for adjacent, step_weight in self.get_adjacents(node):
+                    adjacent_weight = weight + step_weight
+                    sdjacent_path = path + [node]
+                    if adjacent in self.dijkstra_nodes:
+                        if self.dijkstra_nodes[adjacent][0] > adjacent_weight:
+                            self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+                    else:
+                        self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+
+        return [destination * self.terrain.tile] + [point * self.terrain.tile for point in reversed(self.dijkstra_nodes[destination][1])]
+
+    # def get_dijkstra_step(self, destination):
+    #     pos = (self._pos / self.terrain.tile).int_vector()
+    #     if pos not in self.dijkstra_nodes:
+    #         self.dijkstra_nodes[pos] = (0, [])
+    #     dijkstra_nodes_copy = self.dijkstra_nodes.copy()
+    #     for node, value in dijkstra_nodes_copy.items():
+    #         weight, path = value
+    #         # adjacents = self.get_adjacents(node)
+    #         for adjacent, step_weight in self.get_adjacents(node):
+    #             adjacent_weight = weight + step_weight
+    #             sdjacent_path = path + [node]
+    #             if adjacent in self.dijkstra_nodes:
+    #                 if self.dijkstra_nodes[adjacent][0] > adjacent_weight:
+    #                     self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+    #             else:
+    #                 self.dijkstra_nodes[adjacent] = (adjacent_weight, sdjacent_path)
+    #
+    #     return [destination]
+
+    # @staticmethod
+    def get_adjacents(self, node):
+        # node = (node / self.terrain.tile).int_vector()
+        alpha = 0.79
+        for i in range(8):
+            weight = 1 if i % 2 == 0 else 1.4
+            weight *= 999 if node.int() in self.terrain.sea_set else 1
+            yield node + VectorPolar(1, alpha * i).to_cartesian().int_vector(), weight
+
+            # points_set = set(
+            #     (pos + VectorPolar(radius, angle).to_cartesian()).int() for angle in frange(0, 6.29, alpha))
+            # if points_set.issubset(self.terrain.terrain_set):
+            #     return Vector(*pos) * self.terrain.tile
 
 
 class Farmer(Character):
@@ -186,7 +256,6 @@ class Farmer(Character):
 
     # def draw(self, screen):
     #     super().draw(screen)
-    #     for point in self.destination
 
 
 class Characters(Collective):
