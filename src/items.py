@@ -48,6 +48,9 @@ class Item:
     def __hash__(self):
         return hash(self._pos)
 
+    def __sub__(self, other: Vector):
+        return self._pos - other
+
 
 class RoundItem(Item, ABC):
     radius = None

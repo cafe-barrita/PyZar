@@ -42,13 +42,13 @@ class Interaction:
                     if d < character.sight_radius:
                         # FIXME que mire posiciones intermedias pues si es pequeño atraviesa
                         while obstacle.is_point_inside(
-                                character.pos + character.director_vector.unit() * character.sight_radius):
+                                character.pos + character.director_vector * character.sight_radius):
                             # FIXME si entra es while true por que nada cambia la condicion de entrada
                             # FIxme IMPROVE THSI
-                            for vector in Interaction.get_new_unit_vectors(character.director_vector.unit().to_polar(),
+                            for vector in Interaction.get_new_unit_vectors(character.director_vector.to_polar(),
                                                                            angle_addition):
                                 if not obstacle.is_point_inside(character.pos + vector * character.sight_radius):
-                                    character.destination = character.pos + vector * character.sight_radius
+                                    character.intermediate_destinations = character.pos + vector * character.sight_radius
                                     character.obstacle = obstacle
                                     return
                             angle_addition += increment
@@ -59,13 +59,13 @@ class Interaction:
         increment = angle_addition = 0.39  # pi/8
         for character in characters:
             if abs(character.director_vector):
-                while sea.is_point_inside(character.pos + character.director_vector.unit() * character.sight_radius):
+                while sea.is_point_inside(character.pos + character.director_vector * character.sight_radius):
                     # FIXME si entra es while true por que nada cambia la condicion de entrada
                     # FIxme IMPROVE THSI
-                    for vector in Interaction.get_new_unit_vectors(character.director_vector.unit().to_polar(),
+                    for vector in Interaction.get_new_unit_vectors(character.director_vector.to_polar(),
                                                                    angle_addition):
                         if not sea.is_point_inside(character.pos + vector * character.sight_radius):
-                            character.destination = character.pos + vector * character.sight_radius
+                            character.intermediate_destinations = character.pos + vector * character.sight_radius
                             # character.obstacle = sea
                             return
                     angle_addition += increment
