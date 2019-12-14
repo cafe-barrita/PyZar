@@ -28,7 +28,7 @@ text = font.render('XX.X FPS', True, (255, 0, 0), (0, 0, 255))
 text_rect: Rect = text.get_rect()
 text_rect.bottomright = (screen_resolution[0] - 10, screen_resolution[1] - 20)
 source = destination = None
-path = Path(screen_resolution)
+path = Path()
 calculated = None
 
 while not done:
@@ -51,7 +51,6 @@ while not done:
         if destination:
             pygame.draw.circle(screen, (0, 255, 0), destination.int(), 5)
             if not calculated:
-                # asyncio.run(path.get_dijkstra(source, destination))
                 path.get_dijkstra(source, destination)
                 calculated = True
 
