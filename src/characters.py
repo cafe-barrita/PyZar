@@ -11,7 +11,7 @@ import cursors
 from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle, Collective
 from terrain import Terrain
 from tools import frange
-
+import threading
 
 class Character(RoundItem, ABC):
     vel_mod = None
@@ -29,14 +29,13 @@ class Character(RoundItem, ABC):
         self.__intermediate_destinations = []
         self._is_pressed = False
         self.obstacle = None
-        self.dijkstra_nodes = {}
         self._dest_screen_pos = []
 
     @property
     def director_vector(self):
-        # todo meybe unit vector * radius
-        if self.destination:
-            return (self.destination - self._pos).unit()
+        destination = self.destination
+        if destination:
+            return (destination - self._pos).unit()
         else:
             return Vector()
 
@@ -54,10 +53,13 @@ class Character(RoundItem, ABC):
             if not self.__destinations:
                 return None
             destination = self.__destinations.pop()
-            self.__intermediate_destinations += [destination] + self.get_dijkstra(destination)
-            # self.__intermediate_destinations += [destination]
-            self.dijkstra_nodes = {}
-            # print(self.__intermediate_destinations)
+            t = threading.Thread(target=self.get_dijkstra, args=[destination])
+            t.start()
+
+            # FIXME esto es solo para tenerle entretenido mientras piensa
+            # FIXME queda feo o incluso llega a meterse en el mar si tarda mucho en pensar y luego es para atras
+            self.__intermediate_destinations += [destination]
+
         return self.__intermediate_destinations[-1]
 
     @destination.setter
@@ -103,7 +105,7 @@ class Character(RoundItem, ABC):
         # for dest in self._destinations:
         #     pygame.draw.circle(surface, (255, 0, 0), dest.int(), 1, 1)
         for dest in self._dest_screen_pos:
-            pygame.draw.circle(surface, (255, 0, 0), dest.int(), 3)
+            pygame.draw.circle(surface, (50, 0, 0), dest.int(), 3)
 
     def actualize(self, surface: pygame.Surface, t: int):
         self.move(t)
@@ -132,7 +134,7 @@ class Character(RoundItem, ABC):
                         dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
 
         points = reversed(dijkstra_nodes[destination][1])
-        return [self.terrain.tile * point for point in points]
+        self.__intermediate_destinations += [self.terrain.tile * point for point in points]
 
     def get_adjacents(self, node):
         for vector, weight in Character.vectors_weights_tuple:
