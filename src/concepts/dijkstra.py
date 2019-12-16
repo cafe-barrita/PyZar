@@ -80,23 +80,61 @@ class Path:
         pos = (source / self.tile).int_vector()
         destination = (destination / self.tile).int()
         dijkstra_nodes = {pos.int(): (1, [])}
+
         while destination not in dijkstra_nodes:
             dijkstra_nodes_copy = dijkstra_nodes.copy()
             for node, (weight, path) in dijkstra_nodes_copy.items():
                 adjacents = (
                     (vector, weight) for vector, weight in (
-                    ((node[0] + vector[0], node[1] + vector[1]), _weight) for vector, _weight in
-                Path.tuples_weights_tuple)
+                    ((node[0] + _next[0], node[1] + _next[1]), _weight) for _next, _weight in
+                    Path.tuples_weights_tuple)
                     if (vector[0], vector[1]) not in self.sea_set
                 )
                 for adjacent, step_weight in adjacents:
                     adjacent_weight = weight + step_weight
-                    adjacent_path = path + [node]
                     if adjacent in dijkstra_nodes:
                         if dijkstra_nodes[adjacent][0] > adjacent_weight:
+                            adjacent_path = path + [node]
                             dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
                     else:
+                        adjacent_path = path + [node]
                         dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+
+        self.intermediate_points = [(Vector(*point) * self.tile, value[0]) for point, value in
+                                    dijkstra_nodes.items()]
+
+        self.points = [destination] + list(reversed(dijkstra_nodes[destination][1]))
+        self.show_points = [self.tile * Vector(*point) for point in self.points]
+
+    @kronos
+    def get_dijkstra3(self, source: Vector, destination: Vector):
+        pos = (source / self.tile).int_vector()
+        destination = (destination / self.tile).int()
+        dijkstra_nodes = {pos.int(): (1, [])}
+        last_added = {pos.int()}
+        while destination not in dijkstra_nodes:
+
+            dijkstra_nodes_copy = dijkstra_nodes.copy()
+            last_added_copy = last_added.copy()
+            last_added = set()
+            # for node, (weight, path) in dijkstra_nodes_copy.items():
+            for node in last_added_copy:
+                weight, path = dijkstra_nodes_copy[node]
+                adjacents = (
+                    (vector, weight) for vector, weight in (
+                    ((node[0] + _next[0], node[1] + _next[1]), _weight) for _next, _weight in
+                    Path.tuples_weights_tuple)
+                    if (vector[0], vector[1]) not in self.sea_set
+                )
+
+                for adjacent, step_weight in adjacents:
+                    adjacent_weight = weight + step_weight
+                    if adjacent in dijkstra_nodes:
+                        if dijkstra_nodes[adjacent][0] > adjacent_weight:
+                            dijkstra_nodes[adjacent] = adjacent_weight, path + [node]
+                    else:
+                        dijkstra_nodes[adjacent] = adjacent_weight, path + [node]
+                        last_added.add(adjacent)
 
         self.intermediate_points = [(Vector(*point) * self.tile, value[0]) for point, value in
                                     dijkstra_nodes.items()]
