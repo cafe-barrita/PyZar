@@ -1,5 +1,5 @@
 import random
-import time
+import threading
 from abc import ABC
 from collections import deque
 from typing import Union, Deque, List
@@ -10,17 +10,16 @@ from vector_2d import Vector, VectorPolar
 import cursors
 from items import Item, Mineral, Tree, Building, Forest, RoundItem, Castle, Collective
 from terrain import Terrain
-from tools import frange
-import threading
+from tools import frange, kronos
+
 
 class Character(RoundItem, ABC):
     vel_mod = None
     cursors = None
     radius = 5
     sight_radius = 50
-    vectors_weights_tuple = (
-        (Vector(1, 0), 1), (Vector(1, 1), 1.4), (Vector(0, 1), 1), (Vector(-1, 1), 1.4), (Vector(-1, 0), 1),
-        (Vector(-1, -1), 1.4), (Vector(0, -1), 1), (Vector(1, -1), 1.4))
+    vectors_weights_tuple = (((1, 0), 1), ((1, 1), 1.4), ((0, 1), 1), ((-1, 1), 1.4), ((-1, 0), 1),
+                             ((-1, -1), 1.4), ((0, -1), 1), ((1, -1), 1.4))
 
     def __init__(self, pos: Vector, terrain: Terrain):
         super().__init__(pos)
@@ -53,12 +52,16 @@ class Character(RoundItem, ABC):
             if not self.__destinations:
                 return None
             destination = self.__destinations.pop()
-            t = threading.Thread(target=self.get_dijkstra, args=[destination])
-            t.start()
 
             # FIXME esto es solo para tenerle entretenido mientras piensa
             # FIXME queda feo o incluso llega a meterse en el mar si tarda mucho en pensar y luego es para atras
             self.__intermediate_destinations += [destination]
+
+            # FIXME poner timeout a dijistra. si lo mandas a una isla nunca encuentra el camino
+            # FIXME pero ya ha ido tirando con la signación anterior y se cruza todo el mar
+            t = threading.Thread(target=self.get_dijkstra, args=[destination])
+            # FIXME hay que poner mar por todo alrededor. Si no se sale. Además confina el algoritmo y es más eficiente
+            t.start()
 
         return self.__intermediate_destinations[-1]
 
@@ -117,24 +120,37 @@ class Character(RoundItem, ABC):
     def get_cursor(self, item: Item):
         return self.cursors.get(item.__class__.__name__, pygame.cursors.arrow)
 
-    def get_dijkstra(self, destination: Vector) -> List[Vector]:
-        pos = (self.pos / self.terrain.tile).int_vector()
-        destination = (destination / self.terrain.tile).int_vector()
+    @kronos
+    def get_dijkstra(self, destination: Vector):
+        pos = (self.pos / self.terrain.tile).int()
+        destination = (destination / self.terrain.tile).int()
         dijkstra_nodes = {pos: (1, [])}
+        last_added = dijkstra_nodes.copy()
         while destination not in dijkstra_nodes:
-            dijkstra_nodes_copy = dijkstra_nodes.copy()
-            for node, (weight, path) in dijkstra_nodes_copy.items():
-                for adjacent, step_weight in self.get_adjacents(node):
+            last_added_copy = last_added.copy()
+            last_added = {}
+            for node, (weight, path) in last_added_copy.items():
+                adjacents = (
+                    (vector, weight) for vector, weight in (
+                    ((node[0] + _next[0], node[1] + _next[1]), _weight) for _next, _weight in
+                    Character.vectors_weights_tuple)
+                    if (vector[0], vector[1]) not in self.terrain.sea_set
+                )
+
+                for adjacent, step_weight in adjacents:
                     adjacent_weight = weight + step_weight
-                    adjacent_path = path + [node]
                     if adjacent in dijkstra_nodes:
                         if dijkstra_nodes[adjacent][0] > adjacent_weight:
-                            dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+                            value = adjacent_weight, path + [node]
+                            dijkstra_nodes[adjacent] = value
+                            last_added[adjacent] = value
                     else:
-                        dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+                        value = adjacent_weight, path + [node]
+                        dijkstra_nodes[adjacent] = value
+                        last_added[adjacent] = value
 
         points = reversed(dijkstra_nodes[destination][1])
-        self.__intermediate_destinations += [self.terrain.tile * point for point in points]
+        self.__intermediate_destinations += [self.terrain.tile * Vector(*point) for point in points]
 
     def get_adjacents(self, node):
         for vector, weight in Character.vectors_weights_tuple:
