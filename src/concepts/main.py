@@ -52,7 +52,7 @@ while not done:
             pygame.draw.circle(screen, (0, 255, 0), destination.int(), 5)
             if not calculated:
                 # path.get_dijkstra(source, destination)
-                # path.get_dijkstra2(source, destination)
+                path.get_dijkstra2(source, destination)
                 path.get_dijkstra3(source, destination)
                 calculated = True
 

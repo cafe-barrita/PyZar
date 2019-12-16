@@ -19,7 +19,7 @@ class Path:
     def __init__(self):
         self.points = []
         self.show_points = []
-        self.tile = 20
+        self.tile = 10
         self.sea_set = {(x, 12) for x in range(5, 25)}
         self.sea_set.update({(12, y) for y in range(5, 25)})
 
@@ -80,25 +80,29 @@ class Path:
         pos = (source / self.tile).int_vector()
         destination = (destination / self.tile).int()
         dijkstra_nodes = {pos.int(): (1, [])}
-
+        last_added = {pos.int(): (1, [])}
         while destination not in dijkstra_nodes:
-            dijkstra_nodes_copy = dijkstra_nodes.copy()
-            for node, (weight, path) in dijkstra_nodes_copy.items():
+            last_added_copy = last_added.copy()
+            last_added = {}
+            for node, (weight, path) in last_added_copy.items():
                 adjacents = (
                     (vector, weight) for vector, weight in (
                     ((node[0] + _next[0], node[1] + _next[1]), _weight) for _next, _weight in
                     Path.tuples_weights_tuple)
                     if (vector[0], vector[1]) not in self.sea_set
                 )
+
                 for adjacent, step_weight in adjacents:
                     adjacent_weight = weight + step_weight
                     if adjacent in dijkstra_nodes:
                         if dijkstra_nodes[adjacent][0] > adjacent_weight:
-                            adjacent_path = path + [node]
-                            dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+                            value = adjacent_weight, path + [node]
+                            dijkstra_nodes[adjacent] = value
+                            last_added[adjacent] = value
                     else:
-                        adjacent_path = path + [node]
-                        dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+                        value = adjacent_weight, path + [node]
+                        dijkstra_nodes[adjacent] = value
+                        last_added[adjacent] = value
 
         self.intermediate_points = [(Vector(*point) * self.tile, value[0]) for point, value in
                                     dijkstra_nodes.items()]
@@ -111,15 +115,11 @@ class Path:
         pos = (source / self.tile).int_vector()
         destination = (destination / self.tile).int()
         dijkstra_nodes = {pos.int(): (1, [])}
-        last_added = {pos.int()}
+        last_added = {pos.int(): (1, [])}
         while destination not in dijkstra_nodes:
-
-            dijkstra_nodes_copy = dijkstra_nodes.copy()
             last_added_copy = last_added.copy()
-            last_added = set()
-            # for node, (weight, path) in dijkstra_nodes_copy.items():
-            for node in last_added_copy:
-                weight, path = dijkstra_nodes_copy[node]
+            last_added = {}
+            for node, (weight, path) in last_added_copy.items():
                 adjacents = (
                     (vector, weight) for vector, weight in (
                     ((node[0] + _next[0], node[1] + _next[1]), _weight) for _next, _weight in
@@ -131,10 +131,13 @@ class Path:
                     adjacent_weight = weight + step_weight
                     if adjacent in dijkstra_nodes:
                         if dijkstra_nodes[adjacent][0] > adjacent_weight:
-                            dijkstra_nodes[adjacent] = adjacent_weight, path + [node]
+                            value = adjacent_weight, path + [node]
+                            dijkstra_nodes[adjacent] = value
+                            last_added[adjacent] = value
                     else:
-                        dijkstra_nodes[adjacent] = adjacent_weight, path + [node]
-                        last_added.add(adjacent)
+                        value = adjacent_weight, path + [node]
+                        dijkstra_nodes[adjacent] = value
+                        last_added[adjacent] = value
 
         self.intermediate_points = [(Vector(*point) * self.tile, value[0]) for point, value in
                                     dijkstra_nodes.items()]
