@@ -12,6 +12,9 @@ class Path:
     vectors_weights_tuple = (
         (Vector(1, 0), 1), (Vector(1, 1), 1.4), (Vector(0, 1), 1), (Vector(-1, 1), 1.4), (Vector(-1, 0), 1),
         (Vector(-1, -1), 1.4), (Vector(0, -1), 1), (Vector(1, -1), 1.4))
+    tuples_weights_tuple = (
+        ((1, 0), 1), ((1, 1), 1.4), ((0, 1), 1), ((-1, 1), 1.4), ((-1, 0), 1),
+        ((-1, -1), 1.4), ((0, -1), 1), ((1, -1), 1.4))
 
     def __init__(self):
         self.points = []
@@ -33,14 +36,14 @@ class Path:
 
     def draw(self, screen):
         for point in self.show_sea:
-            pygame.draw.circle(screen, (0, 0, 255), point, 4)
+            pygame.draw.circle(screen, (0, 0, 100), point, 4)
 
         max_weight = max(self.intermediate_points, key=lambda tup: tup[1])[1]
         for point, weight in self.intermediate_points:
-            pygame.draw.circle(screen, (weight * 255 / max_weight, 0, 0), point.int(), 3)
+            pygame.draw.circle(screen, (weight * 100 / max_weight, 0, 0), point.int(), 3)
 
         for point in self.show_points:
-            pygame.draw.circle(screen, (0, 255, 0), point.int(), 2)
+            pygame.draw.circle(screen, (0, 100, 0), point.int(), 2)
 
     @kronos
     def get_dijkstra(self, source: Vector, destination: Vector):
@@ -64,10 +67,39 @@ class Path:
 
         self.points = [destination] + list(reversed(dijkstra_nodes[destination][1]))
         self.show_points = [self.tile * point for point in self.points]
-        print(self.points)
+        # print(self.points)
 
     def get_adjacents(self, node):
         for vector, weight in Path.vectors_weights_tuple:
             next_node = node + vector
             if next_node.int() not in self.sea_set:
                 yield next_node, weight
+
+    @kronos
+    def get_dijkstra2(self, source: Vector, destination: Vector):
+        pos = (source / self.tile).int_vector()
+        destination = (destination / self.tile).int()
+        dijkstra_nodes = {pos.int(): (1, [])}
+        while destination not in dijkstra_nodes:
+            dijkstra_nodes_copy = dijkstra_nodes.copy()
+            for node, (weight, path) in dijkstra_nodes_copy.items():
+                adjacents = (
+                    (vector, weight) for vector, weight in (
+                    ((node[0] + vector[0], node[1] + vector[1]), _weight) for vector, _weight in
+                Path.tuples_weights_tuple)
+                    if (vector[0], vector[1]) not in self.sea_set
+                )
+                for adjacent, step_weight in adjacents:
+                    adjacent_weight = weight + step_weight
+                    adjacent_path = path + [node]
+                    if adjacent in dijkstra_nodes:
+                        if dijkstra_nodes[adjacent][0] > adjacent_weight:
+                            dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+                    else:
+                        dijkstra_nodes[adjacent] = (adjacent_weight, adjacent_path)
+
+        self.intermediate_points = [(Vector(*point) * self.tile, value[0]) for point, value in
+                                    dijkstra_nodes.items()]
+
+        self.points = [destination] + list(reversed(dijkstra_nodes[destination][1]))
+        self.show_points = [self.tile * Vector(*point) for point in self.points]
